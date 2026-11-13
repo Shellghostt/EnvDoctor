@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/diagnose-v1.schema.json",
+  "title": "EnvDoctor diagnose output v1",
+  "description": "The single JSON document written by `envdoctor diagnose --json`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "tool",
+    "snapshot",
+    "findings",
+    "summary",
+    "exitCode",
+    "rules",
+    "collectors"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "envdoctor" },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "snapshot": { "$ref": "https://github.com/shellghostt/envdoctor/schema/snapshot-v1.schema.json" },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "info", "warning", "error", "critical"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 },
+        "warning": { "type": "integer", "minimum": 0 },
+        "error": { "type": "integer", "minimum": 0 },
+        "critical": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "exitCode": { "type": "integer", "enum": [0, 1, 2, 3] },
+    "rules": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of rules registered in the build that produced this document."
+    },
+    "collectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "durationMs"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "durationMs": { "type": "integer", "minimum": 0 },
+          "error": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "component", "title", "detected"],
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^ENV[0-9]{3}$" },
+        "severity": { "type": "string", "enum": ["info", "warning", "error", "critical"] },
+        "component": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "detected": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cause": { "type": "string" },
+        "fix": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["summary", "automatic", "requiresElevation", "reversible"],
+          "properties": {
+            "summary": { "type": "string", "minLength": 1 },
+            "commands": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "automatic": { "type": "boolean" },
+            "requiresElevation": { "type": "boolean" },
+            "reversible": { "type": "boolean" }
+          }
+        },
+        "verify": { "type": "string" },
+        "docs": { "type": "string" }
+      }
+    }
+  }
+}

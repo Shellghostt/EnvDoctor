@@ -1,0 +1,60 @@
+# GoReleaser configuration for EnvDoctor.
+#
+# Releases are produced by CI only (see .github/workflows/release.yml once M6
+# exists). Locally this file is used for `goreleaser build --snapshot` and
+# `goreleaser check`, which is how the configuration is verified.
+version: 2
+
+project_name: envdoctor
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: envdoctor
+    main: ./cmd/envdoctor
+    binary: envdoctor
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+
+archives:
+  - id: envdoctor
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: git
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+
+release:
+  # A local snapshot never publishes. A real release is drafted and reviewed.
+  draft: true
+  prerelease: auto

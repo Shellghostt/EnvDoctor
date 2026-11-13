@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/snapshot-v1.schema.json",
+  "title": "EnvDoctor snapshot v1",
+  "description": "One redacted observation of a machine. Fields that a build does not collect are absent, not empty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "collectedAt", "platform"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "version", "arch", "elevated"],
+      "properties": {
+        "os": { "type": "string", "minLength": 1 },
+        "version": {
+          "type": "string",
+          "description": "Empty when the operating system does not expose a version."
+        },
+        "arch": { "type": "string", "minLength": 1 },
+        "elevated": { "type": "boolean" }
+      }
+    },
+    "shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string" }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entries"],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["raw", "exists", "isDir", "position", "duplicate"],
+            "properties": {
+              "raw": {
+                "type": "string",
+                "description": "The entry exactly as it appeared, after home-directory redaction."
+              },
+              "exists": { "type": "boolean" },
+              "isDir": {
+                "type": "boolean",
+                "description": "True only when the entry exists and is a directory."
+              },
+              "position": { "type": "integer", "minimum": 0 },
+              "duplicate": {
+                "type": "boolean",
+                "description": "True when an identical earlier entry exists. Case-insensitive on Windows."
+              }
+            }
+          }
+        }
+      }
+    },
+    "runtimes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "version", "path", "manager", "active"],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": "string" },
+          "path": { "type": "string" },
+          "manager": { "type": "string" },
+          "active": { "type": "boolean" }
+        }
+      }
+    },
+    "ports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["port", "protocol", "state"],
+        "properties": {
+          "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+          "protocol": { "type": "string", "enum": ["tcp", "udp"] },
+          "state": { "type": "string" },
+          "pid": { "type": "integer", "minimum": 0 },
+          "process": { "type": "string" }
+        }
+      }
+    },
+    "docker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cliVersion", "daemonReachable", "context"],
+      "properties": {
+        "cliVersion": { "type": "string" },
+        "daemonReachable": { "type": "boolean" },
+        "context": { "type": "string" }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "userName", "userEmail", "autocrlf"],
+      "properties": {
+        "version": { "type": "string" },
+        "userName": { "type": ["string", "null"] },
+        "userEmail": { "type": ["string", "null"] },
+        "autocrlf": { "type": "string" }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["collector", "message"],
+        "properties": {
+          "collector": { "type": "string", "minLength": 1 },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

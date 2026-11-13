@@ -2,8 +2,8 @@
 project: EnvDoctor
 slug: envdoctor
 owner: shellghostt
-status: skeleton
-version: 0.0.0
+status: mvp
+version: 0.1.0
 language: Go 1.23
 license: MIT
 rank: 2
@@ -26,23 +26,37 @@ updated: 2026-11-13
 
 ```yaml
 project: EnvDoctor
-status: skeleton
-version: 0.0.0
+status: mvp
+version: 0.1.0
 builds: true
-functional: false
+functional: partial            # collection and reporting work; no rules exist
 
 implemented:
-  - repository skeleton
-  - cobra root command that prints its version
+  - cobra CLI with diagnose and version, --json, --component, --rule, --verbose
+  - collector interface, registry and parallel runner with a 2 s per-collector deadline
+  - platform collector (OS, version, architecture, elevation) on windows, linux and darwin
+  - shell collector (name and path where the shell exposes it)
+  - PATH collector with existence, directory, position and duplicate flags
+  - redaction of the home directory before any export
+  - text report and a versioned JSON document
+  - documented exit codes 0/1/2/3/4
+  - JSON schemas for the snapshot and diagnose documents, enforced by a test
+  - golden-fixture harness (no fixtures yet, because there are no rules)
+  - goreleaser configuration verified with a local snapshot build of six targets
 
 not_implemented:
-  - collectors
-  - diagnostic rules
-  - explanation engine
-  - terminal and json reports
+  - diagnostic rules (section 9 lists 18; zero are implemented)
+  - runtime collectors (python, node)
+  - port collector
+  - git collector
+  - docker collector
+  - dependency collector
+  - explanation engine beyond the finding renderer
+  - bubble tea output
   - diagnostic bundles
-  - automated fixes
-  - cross-platform packaging
+  - fixes and undo
+  - signed releases and install docs
+  - --debug-snapshot and --from-bundle
 
 source_of_truth:
   scope_and_rules: docs/PLAN.md      # this file, section 9 for rule ids
@@ -252,6 +266,9 @@ envdoctor rules [--json]
 envdoctor version
 ```
 
+Implemented as of M1: `diagnose` (with all four flags) and `version`. The other commands are planned; see
+section 0 for the authoritative list.
+
 | Exit code | Meaning |
 |---|---|
 | 0 | No findings at or above `warning` |
@@ -347,6 +364,8 @@ Rules may propose fixes. Nothing else may.
 ```
 envdoctor/
 ├── cmd/envdoctor/           CLI entry point
+├── internal/cli/            command wiring, flags, exit codes
+├── internal/config/         resolved options, schema version, timeouts
 ├── internal/collector/      interface, registry, scheduling
 │   ├── windows/             build-tagged collectors
 │   ├── linux/
@@ -358,6 +377,7 @@ envdoctor/
 ├── tests/golden/            one fixture per rule
 ├── tests/integration/       CLI-level tests against fixtures
 ├── docs/rules/              one page per rule
+├── docs/schema/             committed JSON schemas for snapshot and output
 └── deploy/                  release notes, goreleaser config
 ```
 
@@ -372,12 +392,17 @@ envdoctor/
 
 **Acceptance criteria**
 
-- [ ] `envdoctor diagnose` prints platform, shell, arch, elevation and PATH health
-- [ ] `--json` output validates against the documented schema
-- [ ] Exit code 0 when no rules fire; 3 on collector failure
-- [ ] Collectors run in parallel with per-collector timeouts
+- [x] `envdoctor diagnose` prints platform, shell, arch, elevation and PATH health
+- [x] `--json` output validates against the documented schema
+- [x] Exit code 0 when no rules fire; 3 on collector failure
+- [x] Collectors run in parallel with per-collector timeouts
 - [ ] CI matrix runs on Windows, Ubuntu and macOS from day one
-- [ ] `goreleaser` produces a Windows binary locally
+- [x] `goreleaser` produces a Windows binary locally
+
+Status note: verified on Windows 11 with Go 1.27.4. Unit and CLI tests pass; the JSON document was validated
+against `docs/schema/diagnose-v1.schema.json` by the test suite. `goreleaser build --snapshot` produced all
+six targets. The CI workflow has a three-OS matrix configured, but it has not executed because the repository
+has no remote yet, so that checkbox stays open.
 
 ### M2 — Cross-platform collectors and first six rules
 
@@ -578,7 +603,7 @@ collectors and no fixes.
 ## 20. Handoff protocol
 
 1. Read sections 0, 3 and 9. Ten minutes.
-2. `make build && ./bin/envdoctor version`.
+2. `make build && ./bin/envdoctor diagnose`; compare what it prints with section 0's `functional` field.
 3. Pick the next unchecked item in the current milestone. Rules come with fixtures or they do not come.
 4. Run `make test` — golden fixtures will tell you immediately if a rule change broke another platform.
 5. Never add a fix without the safety model. If in doubt, print the command instead of running it.

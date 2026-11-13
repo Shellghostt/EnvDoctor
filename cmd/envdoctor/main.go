@@ -1,13 +1,14 @@
-// Command envdoctor is the entry point for EnvDoctor.
+// Command envdoctor diagnoses development environment problems.
 //
-// It serves the public API and the admin dashboard API.
-//
-// Status: skeleton. Nothing is implemented yet. See docs/PLAN.md.
+// M1 scope: collect platform, shell and PATH facts, print them, and render an
+// empty rule set. No rule exists yet, so `diagnose` never reports a finding and
+// never modifies anything.
 package main
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/shellghostt/envdoctor/internal/cli"
 )
 
 // version is overridden at build time with:
@@ -16,12 +17,10 @@ import (
 var version = "dev"
 
 func main() {
-	if len(os.Args) > 1 && (os.Args[1] == "version" || os.Args[1] == "--version") {
-		fmt.Printf("%s %s\n", "envdoctor", version)
-		return
-	}
-
-	fmt.Println("envdoctor EnvDoctor - skeleton, not implemented")
-	fmt.Println("Read docs/PLAN.md before running this binary.")
-	os.Exit(0)
+	os.Exit(cli.Main(os.Args, cli.App{
+		Version: version,
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
+		Getenv:  os.Getenv,
+	}))
 }

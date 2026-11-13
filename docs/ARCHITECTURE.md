@@ -1,7 +1,9 @@
 # EnvDoctor Architecture
 
-**Status: planned. No implementation exists yet.** This document describes intended structure, not
-delivered behaviour. The authoritative specification is [PLAN.md](PLAN.md).
+**Status: partially implemented (M1).** The collector pipeline, platform, shell and PATH collection, and
+the JSON contract exist. There are no diagnostic rules yet, so EnvDoctor reports no findings on any machine.
+This document describes intended structure, not delivered behaviour. The authoritative specification is
+[PLAN.md](PLAN.md), and section 0 there is the current truth.
 
 ## Context
 

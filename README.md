@@ -2,13 +2,13 @@
 
 > A cross-platform CLI that detects, diagnoses and helps resolve development environment problems.
 
-![status](https://img.shields.io/badge/status-skeleton-lightgrey)
+![status](https://img.shields.io/badge/status-M1_collectors-orange)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.23-00ADD8?logo=go&logoColor=white)
 
-**Status: skeleton (v0.0.0).** This repository contains the project structure, architecture decisions and
-an implementation plan. **Nothing is functional yet.** The word "works" does not appear below unless it is
-true.
+**Status: M1 (v0.1.0).** EnvDoctor collects platform, shell and PATH facts and prints them as text or JSON,
+with a documented exit-code contract. **There are no diagnostic rules yet**, so it cannot tell you that
+anything is wrong: `diagnose` lists facts and then reports zero findings. Nothing is modified on your machine.
 
 ## Why this exists
 
@@ -22,17 +22,17 @@ explains the cause instead of dumping raw output.
 | Capability | Milestone | Status |
 |---|---|---|
 | Detect conflicting Python and Node versions | M2 | Not started |
-| Identify broken PATH entries | M2 | Not started |
+| Identify broken PATH entries | M2 | Facts reported; no rule yet |
 | Detect port conflicts | M2 | Not started |
 | Diagnose Docker daemon problems | M3 | Not started |
 | Identify missing system dependencies | M3 | Not started |
 | Detect incompatible package managers | M3 | Not started |
 | Check Git configuration | M2 | Not started |
 | Generate diagnostic bundles | M4 | Not started |
-| Human-readable reports | M4 | Not started |
-| JSON export | M4 | Not started |
+| Human-readable reports | M4 | Basic text report (M1); polish is M4 |
+| JSON export | M1 | **Done** |
 | Safe, opt-in automated remediation | M5 | Not started |
-| Windows, Linux and macOS support | M6 | Not started |
+| Windows, Linux and macOS support | M6 | Collectors build for all three; CI matrix not yet run |
 
 ## Architecture
 
@@ -64,27 +64,75 @@ might not exist, and no fix may run without explicit confirmation.
 
 ## Quickstart
 
-Not runnable yet. The skeleton builds and prints its version:
+Requires Go 1.23+.
 
 ```bash
 make build
-./bin/envdoctor version
+./bin/envdoctor diagnose
 ```
 
-Full local stack (build and test tooling) arrives with
-milestone M1.
+```
+EnvDoctor 0.1.0 - environment diagnosis
+Generated 2026-11-13T01:41:49Z
+
+Platform   windows 11 (build 26300) amd64
+Elevated   no
+Shell      powershell
+PATH       26 entries, 2 missing, 0 duplicate
+
+Missing PATH entries:
+  -  C:\Windows\System32
+  - ~\AppData\Local\Programs\Antigravity\bin
+
+Rules      0 registered in this build
+
+No findings.
+```
+
+That output is real, captured from `goreleaser build --snapshot` on Windows 11 while developing M1. The
+leading space in the first entry is part of the value: it is a malformed PATH element, and that is exactly
+what the collector is for.
+
+Machine-readable output, for an editor or CI:
+
+```bash
+./bin/envdoctor diagnose --json
+```
+
+The JSON document is validated against [docs/schema/diagnose-v1.schema.json](docs/schema/diagnose-v1.schema.json)
+in the test suite; the snapshot inside it is described by
+[docs/schema/snapshot-v1.schema.json](docs/schema/snapshot-v1.schema.json). Home directories are replaced
+with `~` before anything is written.
+
+Exit codes: `0` nothing at or above warning, `1` warnings, `2` at least one error, `3` the tool itself failed
+(including a collector timeout), `4` invalid usage. Today only `0`, `3` and `4` are reachable, because zero
+rules are registered.
+
+`--component` and `--rule` narrow which rules are evaluated. With no rules, either flag can only produce an
+empty result or an "unknown rule" error.
+
+A local release build of all six targets:
+
+```bash
+goreleaser build --snapshot --clean
+```
+
+`goreleaser check` additionally wants a git remote, so it only passes once the repository is pushed.
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
 | `cmd/envdoctor` | CLI entry point |
-| `internal/collector` | Collector interface and registry |
-| `internal/collector/{windows,linux,darwin}` | Platform-specific collectors behind build tags |
-| `internal/diagnostic` | Rule engine, severity model, explanation composition |
-| `internal/report` | Terminal renderer, JSON renderer, bundle writer |
-| `internal/fix` | Remediation plans, dry-run by default |
+| `internal/cli` | Command wiring, flags, exit codes |
+| `internal/config` | Resolved options, schema version, collector timeout |
+| `internal/collector` | Collector interface, registry, parallel runner |
+| `internal/collector/{windows,linux,darwin}` | Reserved for build-tagged collectors (empty in M1) |
+| `internal/diagnostic` | Rule engine, severity model, fixture harness |
+| `internal/report` | Terminal renderer, JSON renderer |
+| `internal/fix` | Remediation plans, dry-run by default (empty until M5) |
 | `internal/system` | Thin wrappers over OS facilities, the only place syscalls live |
+| `docs/schema` | Committed JSON schemas, enforced by tests |
 | `tests/golden` | Snapshot-to-diagnosis fixtures, one per rule |
 | `deploy` | Release and packaging notes |
 
@@ -92,10 +140,10 @@ milestone M1.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
-| M1 | CLI foundation, collector interface, system information | Not started |
+| M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
 | M2 | Cross-platform collectors: runtimes, PATH, ports, Git | Not started |
-| M3 | Diagnostic rule engine and Docker/dependency rules | Not started |
-| M4 | Human-readable reports, JSON export, diagnostic bundles | Not started |
+| M3 | Rules ENV007–ENV012, Docker and dependency inspectors, `explain` | Not started |
+| M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started |
 | M5 | Safe, confirmed automated remediation | Not started |
 | M6 | Windows, Linux, macOS packaging and signed releases | Not started |
 
