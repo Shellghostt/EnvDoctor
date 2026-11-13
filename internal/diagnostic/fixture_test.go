@@ -79,7 +79,7 @@ func TestGoldenFixtures(t *testing.T) {
 			if err != nil {
 				t.Fatalf("open fixture: %v", err)
 			}
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 
 			fixture, err := diagnostic.LoadFixture(file)
 			if err != nil {

@@ -57,12 +57,12 @@ func Main(args []string, app App) int {
 	root.SetArgs(args[1:])
 
 	if err := root.Execute(); err != nil {
-		fmt.Fprintf(app.Stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(app.Stderr, "error: %v\n", err)
 		var failure toolFailure
 		if errors.As(err, &failure) {
 			return ExitToolFailure
 		}
-		fmt.Fprintln(app.Stderr, "Run 'envdoctor --help' for usage.")
+		_, _ = fmt.Fprintln(app.Stderr, "Run 'envdoctor --help' for usage.")
 		return ExitUsage
 	}
 	return app.exitCode

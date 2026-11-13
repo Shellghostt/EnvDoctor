@@ -88,6 +88,6 @@ func writeTimings(a *App, document report.Document) {
 		if c.Error != "" {
 			status = c.Error
 		}
-		fmt.Fprintf(a.Stderr, "collector %-10s %5dms  %s\n", c.Name, c.DurationMs, status)
+		_, _ = fmt.Fprintf(a.Stderr, "collector %-10s %5dms  %s\n", c.Name, c.DurationMs, status)
 	}
 }
