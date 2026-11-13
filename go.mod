@@ -1,6 +1,8 @@
 module github.com/shellghostt/envdoctor
 
-go 1.23
+go 1.26.0
+
+toolchain go1.26.11
 
 require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
