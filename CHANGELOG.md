@@ -7,6 +7,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- The repository is published at https://github.com/Shellghostt/EnvDoctor and the CI workflow has
+  executed. The first run on 2026-11-13 passed the Windows, Ubuntu and macOS matrix, the lint job and
+  the vulnerability scan.
+- The Go floor moves from 1.23 to 1.26. `go.mod` declares `go 1.26.0` and `toolchain go1.26.11`, so
+  CI installs the patched toolchain and not the exact patch named by the `go` directive. Go 1.23 is
+  past its support window and receives no security fixes. See ADR 0003.
+- The linter is golangci-lint v2.15.0, pinned by version, run by `golangci/golangci-lint-action@v9`.
+  The four findings it produced were fixed in the code rather than excluded.
+
+### Fixed
+
+- Four writes whose error return was discarded now say so explicitly with `_, _ =`.
+
 ### Planned
 
 - M2: runtime, port and Git collectors, plus the first diagnostic rules with golden fixtures.

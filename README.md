@@ -4,7 +4,7 @@
 
 ![status](https://img.shields.io/badge/status-M1_collectors-orange)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-![Go](https://img.shields.io/badge/go-1.23-00ADD8?logo=go&logoColor=white)
+![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
 **Status: M1 (v0.1.0).** EnvDoctor collects platform, shell and PATH facts and prints them as text or JSON,
 with a documented exit-code contract. **There are no diagnostic rules yet**, so it cannot tell you that
@@ -64,7 +64,7 @@ might not exist, and no fix may run without explicit confirmation.
 
 ## Quickstart
 
-Requires Go 1.23+.
+Requires Go 1.26+.
 
 ```bash
 make build

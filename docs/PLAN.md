@@ -4,7 +4,7 @@ slug: envdoctor
 owner: shellghostt
 status: mvp
 version: 0.1.0
-language: Go 1.23
+language: Go 1.26
 license: MIT
 rank: 2
 focus: Developer productivity
@@ -396,13 +396,13 @@ envdoctor/
 - [x] `--json` output validates against the documented schema
 - [x] Exit code 0 when no rules fire; 3 on collector failure
 - [x] Collectors run in parallel with per-collector timeouts
-- [ ] CI matrix runs on Windows, Ubuntu and macOS from day one
+- [x] CI matrix runs on Windows, Ubuntu and macOS from day one
 - [x] `goreleaser` produces a Windows binary locally
 
 Status note: verified on Windows 11 with Go 1.27.4. Unit and CLI tests pass; the JSON document was validated
 against `docs/schema/diagnose-v1.schema.json` by the test suite. `goreleaser build --snapshot` produced all
-six targets. The CI workflow has a three-OS matrix configured, but it has not executed because the repository
-has no remote yet, so that checkbox stays open.
+six targets. The CI workflow has a three-OS matrix and it has executed: the first run on GitHub on
+2026-11-13 passed on Windows, Ubuntu and macOS, including `go test -race`.
 
 ### M2 — Cross-platform collectors and first six rules
 

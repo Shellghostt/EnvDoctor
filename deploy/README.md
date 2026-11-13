@@ -21,9 +21,9 @@ goreleaser build --snapshot --clean
 
 This produced all six binaries; the Windows build reported `envdoctor.exe` at roughly 3.7 MB.
 
-`goreleaser check` additionally validates the release configuration against the git remote, so it
-fails while the repository has no remote configured. That is a missing prerequisite, not a broken
-configuration.
+`goreleaser check` additionally validates the release configuration against the git remote. Before
+publication it failed for that reason alone; the repository now has a remote and `goreleaser check`
+passes.
 
 ## Release workflow
 
