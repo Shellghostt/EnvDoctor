@@ -60,7 +60,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   bill of health.
 - No runtime, port, Git, Docker or dependency collectors.
 - No bundles, no fixes, no Bubble Tea renderer.
-- The CI matrix is configured but has never executed: the repository has no remote yet.
+- The CI matrix was configured but had not executed when this tag was created: the repository had no
+  remote yet. It has since run on GitHub; see [Unreleased].
 - `goreleaser check` fails without a git remote; only the snapshot build was verified.
 
 ## [0.0.0] - 2026-11-13
