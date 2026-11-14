@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-14T00:00:00Z",
+  "platform": {"os": "linux", "version": "synthetic demo", "arch": "amd64", "elevated": false},
+  "shell": {"name": "bash"},
+  "path": {"entries": [
+    {"raw": "/usr/bin", "exists": true, "isDir": true, "position": 0, "duplicate": false},
+    {"raw": " /missing/devtools", "exists": false, "isDir": false, "position": 1, "duplicate": false}
+  ]},
+  "runtimes": [
+    {"name": "python", "version": "3.12.7", "path": "/usr/bin/python", "manager": "system", "active": true},
+    {"name": "python", "version": "3.13.1", "path": "~/.pyenv/versions/3.13.1/bin/python3", "manager": "pyenv", "active": true},
+    {"name": "node", "version": "20.18.0", "path": "/usr/bin/node", "manager": "system", "active": true},
+    {"name": "node", "version": "22.11.0", "path": "~/.nvm/versions/node/v22.11.0/bin/node", "manager": "nvm", "active": false, "expected": true}
+  ],
+  "requestedPorts": [3000],
+  "ports": [{"port": 3000, "protocol": "tcp", "state": "listen", "pid": 123, "process": "demo-node"}],
+  "docker": {"cliVersion": "29.9.2", "daemonReachable": false, "context": "local-default", "installed": true},
+  "git": {"version": "2.53.0", "userName": null, "userEmail": null, "autocrlf": "input"}
+}

@@ -78,6 +78,25 @@ func NewDocument(version string, generatedAt time.Time, snapshot collector.Snaps
 		}
 		collectors = append(collectors, entry)
 	}
+	// Offline snapshots have errors but no live timing records. Preserve their
+	// degraded status and expose the same notices as a live diagnosis.
+	for _, failure := range snapshot.Errors {
+		matched := false
+		for i := range collectors {
+			if collectors[i].Name == failure.Collector {
+				collectors[i].Error = failure.Message
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			collectors = append(collectors, Collector{Name: failure.Collector, Error: failure.Message})
+		}
+	}
+	code := exitCode(timings, copied)
+	if len(snapshot.Errors) > 0 {
+		code = 3
+	}
 
 	return Document{
 		SchemaVersion: 1,
@@ -86,7 +105,7 @@ func NewDocument(version string, generatedAt time.Time, snapshot collector.Snaps
 		Snapshot:      snapshot,
 		Findings:      copied,
 		Summary:       summary,
-		ExitCode:      exitCode(timings, copied),
+		ExitCode:      code,
 		Rules:         ruleCount,
 		Collectors:    collectors,
 	}

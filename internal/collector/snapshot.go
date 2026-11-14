@@ -10,16 +10,17 @@ import (
 // The JSON shape is documented in docs/schema/snapshot-v1.schema.json and is
 // versioned by SchemaVersion. Adding a field is a schema change.
 type Snapshot struct {
-	SchemaVersion int              `json:"schemaVersion"`
-	CollectedAt   time.Time        `json:"collectedAt"`
-	Platform      *Platform        `json:"platform,omitempty"`
-	Shell         *Shell           `json:"shell,omitempty"`
-	Path          *PathInfo        `json:"path,omitempty"`
-	Runtimes      []Runtime        `json:"runtimes,omitempty"`
-	Ports         []Port           `json:"ports,omitempty"`
-	Docker        *Docker          `json:"docker,omitempty"`
-	Git           *Git             `json:"git,omitempty"`
-	Errors        []CollectorError `json:"errors,omitempty"`
+	SchemaVersion  int              `json:"schemaVersion"`
+	CollectedAt    time.Time        `json:"collectedAt"`
+	Platform       *Platform        `json:"platform,omitempty"`
+	Shell          *Shell           `json:"shell,omitempty"`
+	Path           *PathInfo        `json:"path,omitempty"`
+	Runtimes       []Runtime        `json:"runtimes,omitempty"`
+	Ports          []Port           `json:"ports,omitempty"`
+	RequestedPorts []int            `json:"requestedPorts,omitempty"`
+	Docker         *Docker          `json:"docker,omitempty"`
+	Git            *Git             `json:"git,omitempty"`
+	Errors         []CollectorError `json:"errors,omitempty"`
 }
 
 // Platform describes the operating system the process runs on.
@@ -53,11 +54,13 @@ type PathEntry struct {
 
 // Runtime is one interpreter or toolchain installation. Filled from M2.
 type Runtime struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Path    string `json:"path"`
-	Manager string `json:"manager"`
-	Active  bool   `json:"active"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	Path     string `json:"path"`
+	Manager  string `json:"manager"`
+	Active   bool   `json:"active"`
+	Expected bool   `json:"expected,omitempty"`
+	Missing  bool   `json:"missing,omitempty"`
 }
 
 // Port is one listening socket. Filled from M2.
@@ -69,11 +72,13 @@ type Port struct {
 	Process  string `json:"process,omitempty"`
 }
 
-// Docker is the Docker CLI and daemon state. Filled from M3.
+// Docker records installed CLI/local-default engine state in M2. Full context
+// and compatibility inspection remain M3.
 type Docker struct {
 	CLIVersion      string `json:"cliVersion"`
 	DaemonReachable bool   `json:"daemonReachable"`
 	Context         string `json:"context"`
+	Installed       bool   `json:"installed"`
 }
 
 // Git is the Git version and identity. Filled from M2.

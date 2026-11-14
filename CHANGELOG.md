@@ -9,11 +9,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- M2 runtime, requested TCP-port and Git collectors, plus the local Docker probe needed by ENV006.
+- Rules ENV001–ENV006 with deterministic evidence, manual suggestions and rule documentation.
+- 54 three-OS golden cases and built-CLI checks for JSON, findings and exit codes.
+- `--port` and bounded offline `--fixture-dir` diagnosis, with a committed synthetic demo.
+- Runtime, Git and Docker facts in the plain-text report.
 - The repository tracks CodeGraph's index ignore rules and documents it as an optional local tool
   for code navigation. Nothing in the build or in CI depends on it.
 
 ### Changed
 
+- `golang.org/x/sys` updated to v0.48.0 to remove the vulnerable v0.30.0 dependency.
+- Feature and fix branches trigger the three-OS CI matrix. Snapshot schema permits absent platform facts
+  after a failed collector; offline errors retain degraded notices and exit code 3.
 - The repository is published at https://github.com/Shellghostt/EnvDoctor and the CI workflow has
   executed. The first run on 2026-11-13 passed the Windows, Ubuntu and macOS matrix, the lint job and
   the vulnerability scan.
@@ -25,11 +33,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Fixed
 
+- M1 runner deadline now bounds a collector that ignores cancellation.
+- Home redaction includes quoted PATH entries and paths embedded in collector/timing errors.
+- Broken symlinks do not shadow usable runtimes; Python venvs stay distinct from their system symlink
+  targets; unrelated numeric directories do not become runtime versions.
+- Per-user Windows Docker locations are recognized. Invalid Git config and missing macOS tools cause
+  degraded inspection instead of silent clean results. Git/Docker context overrides are removed.
+- Port verification commands include the requested ports. Offline input rejects extra JSON documents.
+- PATH permission/inspection failures are degraded rather than converted to missing-directory evidence;
+  malformed paths and non-directory ancestors still produce broken-entry warnings with raw text preserved.
 - Four writes whose error return was discarded now say so explicitly with `_, _ =`.
 
 ### Planned
 
-- M2: runtime, port and Git collectors, plus the first diagnostic rules with golden fixtures.
+- M3: rules ENV007–ENV012, full Docker/dependency inspection and the `explain` command.
 
 ## [0.1.0] - 2026-11-13
 

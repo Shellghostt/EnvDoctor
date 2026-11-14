@@ -12,7 +12,7 @@ depends_on:
   - No runtime dependencies (single static binary)
   - Docker (optional, only for testing rules that inspect Docker)
 created: 2026-11-13
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # EnvDoctor — Implementation Plan
@@ -29,29 +29,31 @@ project: EnvDoctor
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # collection and reporting work; no rules exist
+functional: partial            # M1/M2 collection and six rules work; M3-M6 remain
 
 implemented:
-  - cobra CLI with diagnose and version, --json, --component, --rule, --verbose
+  - cobra CLI with diagnose and version, --json, --component, --rule, --verbose, --port, --fixture-dir
   - collector interface, registry and parallel runner with a 2 s per-collector deadline
   - platform collector (OS, version, architecture, elevation) on windows, linux and darwin
   - shell collector (name and path where the shell exposes it)
   - PATH collector with existence, directory, position and duplicate flags
-  - redaction of the home directory before any export
+  - runtime metadata discovery for Python and Node, including selected environment targets
+  - requested TCP port ownership via OS facilities, Git config and local-default Docker probes
+  - pure rules ENV001-ENV006 with manual suggestions and actionable verification commands
+  - home-path redaction including quoted paths and embedded collector errors
   - text report and a versioned JSON document
   - documented exit codes 0/1/2/3/4
   - JSON schemas for the snapshot and diagnose documents, enforced by a test
-  - golden-fixture harness (no fixtures yet, because there are no rules)
+  - 54 golden fixtures covering six rules, three OS snapshots and positive/negative/edge cases
+  - built CLI integration tests for the golden cases and JSON/exit-code contracts
+  - bounded offline diagnosis that preserves degraded collector errors
   - goreleaser configuration verified with a local snapshot build of six targets
 
 not_implemented:
-  - diagnostic rules (section 9 lists 18; zero are implemented)
-  - runtime collectors (python, node)
-  - port collector
-  - git collector
-  - docker collector
+  - diagnostic rules ENV007-ENV018
+  - full Docker context/version inspector (M2 has only the local-default probe for ENV006)
   - dependency collector
-  - explanation engine beyond the finding renderer
+  - explain/rules commands and generated rule documentation
   - bubble tea output
   - diagnostic bundles
   - fixes and undo
@@ -253,12 +255,17 @@ There is no database. The two persisted artefacts are the snapshot and the repor
 
 **Severity:** `info`, `warning`, `error`, `critical`. Exit code derives from the highest severity present.
 
+The snapshot above illustrates planned model fields. In M2, runtime `expected`/`missing`, requested TCP
+ports and Docker `installed` are also recorded. Docker `context` is `local-default`, not the user's chosen
+context. The finding above illustrates a future automatic fix: M2 suggestions are manual, have no commands,
+and do not probe TCP port 2375. See ADR 0004 and the committed schemas for the implemented contract.
+
 ---
 
 ## 8. Command surface and exit codes
 
 ```
-envdoctor diagnose [--json] [--component <name>] [--rule <id>] [--verbose]
+envdoctor diagnose [--json] [--component <name>] [--rule <id>] [--verbose] [--port <ports>] [--fixture-dir <dir>]
 envdoctor explain <rule-id>
 envdoctor bundle [--output <file>] [--include-logs]
 envdoctor fix [--rule <id>] [--dry-run] [--yes]
@@ -266,7 +273,7 @@ envdoctor rules [--json]
 envdoctor version
 ```
 
-Implemented as of M1: `diagnose` (with all four flags) and `version`. The other commands are planned; see
+Implemented as of M2: `diagnose` (with all six flags) and `version`. The other commands are planned; see
 section 0 for the authoritative list.
 
 | Exit code | Meaning |
@@ -274,11 +281,17 @@ section 0 for the authoritative list.
 | 0 | No findings at or above `warning` |
 | 1 | Warnings only |
 | 2 | At least one `error` or `critical` |
-| 3 | The tool itself failed (collector crash, invalid flag) |
+| 3 | The tool itself failed, including degraded collectors or invalid offline snapshot data |
 | 4 | Invalid usage |
 
 `--json` writes exactly one JSON document to stdout and nothing else. All diagnostics and progress go to
 stderr. This is a contract: scripts depend on it.
+
+`--port` accepts repeated flags and comma-separated ports 1–65535. Network inspection is skipped without
+requested ports. `--fixture-dir` reads one version-1 `snapshot.json` up to 8 MiB, invokes no collectors,
+and rejects unknown fields, trailing documents, unsupported versions and missing capture timestamps.
+Captured collector errors still skip their dependent rules and make the run exit 3. Filters narrow findings,
+not collection. JSON includes effective Git identity; review reports before sharing them.
 
 ---
 
@@ -306,6 +319,11 @@ Rule ids are stable and never reused. One markdown page per rule in `docs/rules/
 | ENV016 | shell | info | Shell profile sets a value that contradicts the current environment |
 | ENV017 | docker | warning | Docker context points at a remote host |
 | ENV018 | git | info | Repository-local config differs from global identity |
+
+ENV001–ENV006 are implemented. ENV007–ENV018 remain planned. ENV001 requires known differing versions
+for active Python aliases. ENV002 reports multiple Node candidates or a missing selected target. ENV004
+uses an explicitly selected environment; ENV005 only reports requested ports; ENV006 probes the default
+local engine. Runtime versions are metadata-based and may be unknown. The per-rule pages record caveats.
 
 **Rule contract.** A rule receives the snapshot and returns zero or more findings. It must:
 
@@ -410,11 +428,21 @@ six targets. The CI workflow has a three-OS matrix and it has executed: the firs
 
 **Acceptance criteria**
 
-- [ ] Node and Python conflicts detected on all three OSes using golden fixtures
-- [ ] Broken PATH entries reported with the exact raw entry
-- [ ] Port conflict names the holding process and pid where the OS permits
-- [ ] Golden fixtures exist for all six rules and run in CI on every platform
-- [ ] No rule calls `os.Getenv` or executes a binary directly (enforced by a lint test)
+- [x] Node and Python conflicts detected on all three OSes using golden fixtures
+- [x] Broken PATH entries reported with the exact raw entry
+- [x] Port conflict names the holding process and pid where the OS permits
+- [x] Golden fixtures exist for all six rules and run in CI on every platform
+- [x] No rule calls `os.Getenv` or executes a binary directly (enforced by a lint test)
+
+Status: complete on `feat/m2-implementation`, unreleased. All 54 golden cases passed through both the
+engine and a built CLI. Native Windows and Linux race suites passed. A real Windows listening socket was
+identified by port, process name and PID. GoReleaser built Windows/Linux/macOS on amd64/arm64; the linter
+and vulnerability scanner passed. The existing three-OS CI matrix executes the same full suite on feature
+branches. The new M2 branch has not been pushed to GitHub during this session, so an actual updated macOS
+run and native Windows race run remain CI validation. Cross-compilation is not evidence of macOS execution.
+
+Demo: build the CLI and run `diagnose --fixture-dir tests/demo` (synthetic, six findings, exit 2).
+See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, measurements and limitations.
 
 ### M3 — Rule engine and dependency rules
 
@@ -489,7 +517,7 @@ six targets. The CI workflow has a three-OS matrix and it has executed: the firs
 | ENV-017 | Rule ENV005 + fixture | ENV-011 | M2 |
 | ENV-018 | Rule ENV006 + fixture | ENV-003 | M2 |
 | ENV-019 | Terminal renderer with severity grouping | ENV-006 | M2 |
-| ENV-020 | Docker collector (cli, daemon, context) | ENV-003 | M3 |
+| ENV-020 | Full Docker context/version inspector (local-default probe implemented for ENV006 in M2) | ENV-003 | M3 |
 | ENV-021 | Dependency collector (libs, build tools) | ENV-003 | M3 |
 | ENV-022 | Rules ENV007–ENV012 | ENV-020, ENV-021 | M3 |
 | ENV-023 | `explain` command and docs generation | ENV-013 | M3 |
@@ -567,15 +595,16 @@ Explicitly out of scope: malware detection, host compromise assessment.
 
 1. Should `diagnose` exit non-zero by default in CI, or require `--strict`? *Current: non-zero on error, so
    problems are not silently ignored.*
-2. How long do fix logs live in `~/.envdoctor/`? *Current: 90 days, pruned on startup.*
+2. How long do fix logs live in `~/.envdoctor/`? *Planned: 90 days, pruned on startup; fixes are M5.*
 3. Is a rule registry format needed for team rule packs before v1.0? *Current: no, post-1.0.*
 
 ---
 
 ## 19. Anti-hallucination contract
 
-**Facts:** the repository builds, prints its version, and does nothing else. There are no rules, no
-collectors and no fixes.
+**Facts:** M1 and M2 collection, six pure diagnostic rules, plain-text/JSON reporting and bounded offline
+diagnosis are implemented and tested. Bundles, automatic fixes, rules ENV007–ENV018 and signed releases
+remain future work. Runtime discovery does not execute PATH candidates and unknown metadata stays unknown.
 
 **Rules:**
 

@@ -84,3 +84,21 @@ func TestRedactRewritesSnapshot(t *testing.T) {
 		t.Error("redaction changed existence")
 	}
 }
+
+func TestRedactTextCoversQuotedPathsAndCollectorErrors(t *testing.T) {
+	for input, want := range map[string]string{
+		`"C:\Users\ann\bin"`:                       `"~\bin"`,
+		`open C:\Users\ann\config: access denied`:  `open ~\config: access denied`,
+		`open C:\Users\anna\config: access denied`: `open C:\Users\anna\config: access denied`,
+		`ü C:\Users\ann\bin`:                       `ü ~\bin`,
+		`/tmp/home/ann/bin`:                        `/tmp/home/ann/bin`,
+	} {
+		home := `C:\Users\ann`
+		if input[0] == '/' {
+			home = "/home/ann"
+		}
+		if got := collector.RedactText(input, home); got != want {
+			t.Errorf("RedactText(%q)=%q want=%q", input, got, want)
+		}
+	}
+}

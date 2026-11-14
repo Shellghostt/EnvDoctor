@@ -16,6 +16,32 @@ type fakeCollector struct {
 	delay time.Duration
 }
 
+type stuckCollector struct{ release <-chan struct{} }
+
+func (stuckCollector) Name() string { return "stuck" }
+func (c stuckCollector) Collect(context.Context) (collector.Part, error) {
+	<-c.release
+	return collector.Part{}, nil
+}
+
+func TestRunnerEnforcesDeadlineWhenCollectorIgnoresCancellation(t *testing.T) {
+	release := make(chan struct{})
+	defer close(release)
+	done := make(chan []collector.Timing, 1)
+	go func() {
+		_, timings := (collector.Runner{Collectors: []collector.Collector{stuckCollector{release}}, Timeout: 20 * time.Millisecond}).Run(context.Background())
+		done <- timings
+	}()
+	select {
+	case timings := <-done:
+		if !collector.Degraded(timings) {
+			t.Fatal("timeout was not recorded")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("collector bypassed the runner deadline")
+	}
+}
+
 func (f fakeCollector) Name() string { return f.name }
 
 func (f fakeCollector) Collect(ctx context.Context) (collector.Part, error) {

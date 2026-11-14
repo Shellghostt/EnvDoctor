@@ -1,0 +1,45 @@
+{
+  "ruleId": "ENV003",
+  "description": "linux positive",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "path": {
+      "entries": [
+        {
+          "raw": "\"/tools/a\"",
+          "exists": false,
+          "isDir": false,
+          "position": 0,
+          "duplicate": false
+        }
+      ]
+    }
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV003",
+      "severity": "warning",
+      "component": "path",
+      "title": "Missing PATH entries",
+      "detected": [
+        "\"/tools/a\""
+      ],
+      "cause": "PATH references directories that no longer exist.",
+      "fix": {
+        "summary": "Remove or correct these entries in your shell or system PATH settings.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV003",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV003.md"
+    }
+  ]
+}

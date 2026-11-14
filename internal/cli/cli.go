@@ -88,17 +88,21 @@ func (a *App) applyDefaults() {
 		a.Collectors = DefaultCollectors()
 	}
 	if a.Engine == nil {
-		a.Engine = diagnostic.NewEngine()
+		a.Engine = diagnostic.DefaultEngine()
 	}
 }
 
-// DefaultCollectors returns the collectors implemented in this build. M1 has
-// three; runtimes, ports, Git and Docker arrive in M2 and M3.
+// DefaultCollectors returns the seven M2 collectors. Network inspection runs
+// only for requested ports; Docker probes only the default local engine.
 func DefaultCollectors() []collector.Collector {
 	return []collector.Collector{
 		collector.NewPlatformCollector(),
 		collector.NewShellCollector(),
 		collector.NewPathCollector(),
+		collector.NewRuntimeCollector(),
+		collector.PortCollector{},
+		collector.GitCollector{},
+		collector.DockerCollector{},
 	}
 }
 

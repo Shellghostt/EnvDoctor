@@ -1,0 +1,51 @@
+{
+  "ruleId": "ENV004",
+  "description": "linux positive",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "runtimes": [
+      {
+        "name": "node",
+        "path": "/tools/a",
+        "version": "20.1.0",
+        "active": true,
+        "manager": "system"
+      },
+      {
+        "name": "node",
+        "path": "/tools/b",
+        "version": "22.1.0",
+        "active": false,
+        "manager": "system",
+        "expected": true
+      }
+    ]
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV004",
+      "severity": "warning",
+      "component": "path",
+      "title": "Selected runtime is shadowed on PATH",
+      "detected": [
+        "/tools/a shadows expected /tools/b"
+      ],
+      "cause": "An earlier PATH candidate takes precedence over the selected environment.",
+      "fix": {
+        "summary": "Activate the selected environment or move its bin directory before the conflicting entry.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV004",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV004.md"
+    }
+  ]
+}

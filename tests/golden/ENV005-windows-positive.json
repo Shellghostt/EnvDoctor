@@ -1,0 +1,46 @@
+{
+  "ruleId": "ENV005",
+  "description": "windows positive",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "windows",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "requestedPorts": [
+      3000
+    ],
+    "ports": [
+      {
+        "port": 3000,
+        "protocol": "tcp",
+        "state": "listen",
+        "pid": 123,
+        "process": "node"
+      }
+    ]
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV005",
+      "severity": "error",
+      "component": "network",
+      "title": "Requested TCP port is already in use",
+      "detected": [
+        "TCP 3000: node pid 123"
+      ],
+      "cause": "A listening process already holds a port requested for this application.",
+      "fix": {
+        "summary": "Choose another port or stop the identified process after confirming it is safe to stop.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV005 --port 3000",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV005.md"
+    }
+  ]
+}
