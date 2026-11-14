@@ -2,9 +2,12 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/shellghostt/envdoctor/internal/system"
 )
 
 // PathCollector splits PATH and checks each entry with file metadata.
@@ -50,6 +53,9 @@ func (c PathCollector) Collect(ctx context.Context) (Part, error) {
 
 		target := unquote(raw)
 		info, err := c.Stat(target)
+		if err != nil && !system.IsMissingPath(err) {
+			return Part{}, fmt.Errorf("inspect PATH entry %q: %w", raw, err)
+		}
 		exists := err == nil
 		isDir := exists && info.IsDir()
 

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -55,20 +56,43 @@ func (a *App) newDiagnoseCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&opts.Verbose, "verbose", false, "write collector timings to stderr")
 	cmd.Flags().StringVar(&opts.Component, "component", "", "only evaluate rules for this component")
 	cmd.Flags().StringVar(&opts.Rule, "rule", "", "only evaluate this rule id (ENV001)")
+	cmd.Flags().IntSliceVar(&opts.Ports, "port", nil, "TCP ports your application needs (repeatable or comma separated)")
+	cmd.Flags().StringVar(&opts.FixtureDir, "fixture-dir", "", "read snapshot.json in this directory; do not inspect this machine")
 
 	return cmd
 }
 
 func (a *App) diagnose(ctx context.Context, opts config.Options) (report.Document, error) {
-	runner := collector.Runner{
-		Collectors: a.Collectors,
-		Timeout:    config.CollectorTimeout,
-		Now:        a.Now,
+	var snapshot collector.Snapshot
+	var timings []collector.Timing
+	if opts.FixtureDir != "" {
+		loaded, err := loadSnapshot(opts.FixtureDir)
+		if err != nil {
+			return report.Document{}, err
+		}
+		snapshot = loaded
+		if len(opts.Ports) > 0 {
+			snapshot.RequestedPorts = opts.Ports
+		}
+	} else {
+		collectors := append([]collector.Collector(nil), a.Collectors...)
+		for i, c := range collectors {
+			if _, ok := c.(collector.PortCollector); ok {
+				collectors[i] = collector.PortCollector{Requested: opts.Ports}
+			}
+		}
+		runner := collector.Runner{Collectors: collectors, Timeout: config.CollectorTimeout, Now: a.Now}
+		snapshot, timings = runner.Run(ctx)
+		snapshot.RequestedPorts = opts.Ports
 	}
-	snapshot, timings := runner.Run(ctx)
 
 	if home, err := a.HomeDir(); err == nil {
 		snapshot.Redact(home)
+		for i := range timings {
+			if timings[i].Err != nil {
+				timings[i].Err = errors.New(collector.RedactText(timings[i].Err.Error(), home))
+			}
+		}
 	}
 
 	findings, err := a.Engine.Evaluate(snapshot, diagnostic.Filter{

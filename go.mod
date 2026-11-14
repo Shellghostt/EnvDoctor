@@ -7,7 +7,7 @@ toolchain go1.26.11
 require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.48.0
 )
 
 require (

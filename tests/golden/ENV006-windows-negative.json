@@ -1,0 +1,21 @@
+{
+  "ruleId": "ENV006",
+  "description": "windows negative",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "windows",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "docker": {
+      "installed": true,
+      "cliVersion": "29.0.0",
+      "daemonReachable": true,
+      "context": "local-default"
+    }
+  },
+  "expectedFindings": []
+}

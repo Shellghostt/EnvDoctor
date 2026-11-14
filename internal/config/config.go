@@ -30,16 +30,23 @@ var (
 
 // Options is the result of parsing the diagnose flags.
 type Options struct {
-	JSON      bool
-	Verbose   bool
-	Component string
-	Rule      string
+	JSON       bool
+	Verbose    bool
+	Component  string
+	Rule       string
+	Ports      []int
+	FixtureDir string
 }
 
 // Validate rejects values that cannot possibly select anything. It does not
 // check whether the rule exists: that needs the rule registry, which the
 // caller owns.
 func (o Options) Validate() error {
+	for _, p := range o.Ports {
+		if p < 1 || p > 65535 {
+			return fmt.Errorf("--port must be between 1 and 65535")
+		}
+	}
 	if o.Rule != "" && !ruleIDPattern.MatchString(o.Rule) {
 		return fmt.Errorf("--rule %q is not a rule id; expected the form ENV001", o.Rule)
 	}

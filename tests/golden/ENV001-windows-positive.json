@@ -1,0 +1,51 @@
+{
+  "ruleId": "ENV001",
+  "description": "windows positive",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "windows",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "path": "C:\\tools\\a",
+        "version": "3.11.1",
+        "active": true,
+        "manager": "system"
+      },
+      {
+        "name": "python",
+        "path": "C:\\tools\\b",
+        "version": "3.12.1",
+        "active": true,
+        "manager": "system"
+      }
+    ]
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV001",
+      "severity": "error",
+      "component": "python",
+      "title": "Conflicting active Python versions",
+      "detected": [
+        "C:\\tools\\a (3.11.1)",
+        "C:\\tools\\b (3.12.1)"
+      ],
+      "cause": "Active Python command aliases resolve to different installed versions.",
+      "fix": {
+        "summary": "Activate the intended environment and align python and python3 on PATH.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV001",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV001.md"
+    }
+  ]
+}

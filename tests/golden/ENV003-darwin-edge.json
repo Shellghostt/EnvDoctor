@@ -1,0 +1,32 @@
+{
+  "ruleId": "ENV003",
+  "description": "darwin edge",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "path": {
+      "entries": [
+        {
+          "raw": "\"/tools/a\"",
+          "exists": false,
+          "isDir": false,
+          "position": 0,
+          "duplicate": false
+        }
+      ]
+    },
+    "errors": [
+      {
+        "collector": "path",
+        "message": "timeout"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

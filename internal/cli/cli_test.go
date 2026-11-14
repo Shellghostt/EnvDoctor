@@ -56,6 +56,7 @@ func newApp(stdout, stderr *bytes.Buffer) cli.App {
 		Now:        func() time.Time { return fixedNow },
 		HomeDir:    func() (string, error) { return fixedHome, nil },
 		Collectors: healthyCollectors(),
+		Engine:     diagnostic.NewEngine(), // Keep the M1 renderer contract test independent of rules.
 	}
 }
 

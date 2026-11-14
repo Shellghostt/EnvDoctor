@@ -58,8 +58,7 @@ func TestEvaluateFixtureRejectsUnknownRule(t *testing.T) {
 
 // TestGoldenFixtures is the harness required by PLAN ENV-007. Every file in
 // tests/golden is a fixture; evaluating it must reproduce the expected findings
-// exactly. There are no fixtures while there are no rules, and a fixture for a
-// rule that does not exist fails.
+// exactly. A registered rule without a fixture or a fixture for a missing rule fails.
 func TestGoldenFixtures(t *testing.T) {
 	dir := filepath.Join("..", "..", "tests", "golden")
 	entries, err := os.ReadDir(dir)
@@ -67,7 +66,7 @@ func TestGoldenFixtures(t *testing.T) {
 		t.Fatalf("read golden dir: %v", err)
 	}
 
-	engine := diagnostic.NewEngine()
+	engine := diagnostic.DefaultEngine()
 	seen := map[string]bool{}
 
 	for _, entry := range entries {

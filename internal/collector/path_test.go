@@ -3,6 +3,7 @@ package collector_test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -133,5 +134,28 @@ func TestPathCollectorStopsOnCancelledContext(t *testing.T) {
 	}
 	if _, err := c.Collect(ctx); err == nil {
 		t.Fatal("cancelled context should return an error")
+	}
+}
+
+func TestPathPermissionFailureIsNotMissingDirectoryEvidence(t *testing.T) {
+	c := collector.PathCollector{Getenv: func(string) string { return "/private/bin" }, Separator: ":", Stat: func(string) (os.FileInfo, error) { return nil, os.ErrPermission }}
+	if _, err := c.Collect(context.Background()); err == nil {
+		t.Fatal("access denied was converted into evidence that a PATH directory is missing")
+	}
+}
+
+func TestPathThroughRegularFileIsReportedAsMissing(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(file, nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	raw := filepath.Join(file, "bin")
+	c := collector.PathCollector{Getenv: func(string) string { return raw }, Separator: string(os.PathListSeparator), Stat: os.Stat}
+	part, err := c.Collect(context.Background())
+	if err != nil {
+		t.Fatalf("non-directory ancestor degraded collection: %v", err)
+	}
+	if part.Path == nil || len(part.Path.Entries) != 1 || part.Path.Entries[0].Raw != raw || part.Path.Entries[0].Exists {
+		t.Fatalf("invalid raw entry was not preserved as missing: %+v", part.Path)
 	}
 }

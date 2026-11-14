@@ -27,6 +27,11 @@ make test        # unit tests
 make lint        # formatting and static analysis
 ```
 
+`go test -count=1 -timeout=120s ./...` also builds the CLI and runs all 54 golden cases through it.
+Each new rule needs positive, negative and edge snapshots for Windows, Linux and macOS. Expected
+findings are reviewed evidence, not output regenerated from the implementation. See
+[the validation record](docs/testing/m1-m2-validation.md) for Windows and Linux race commands.
+
 ## Code navigation
 
 [CodeGraph](https://github.com/colbymchenry/codegraph) builds a local symbol index of this

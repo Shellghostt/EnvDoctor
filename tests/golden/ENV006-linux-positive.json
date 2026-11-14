@@ -1,0 +1,41 @@
+{
+  "ruleId": "ENV006",
+  "description": "linux positive",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "docker": {
+      "installed": true,
+      "cliVersion": "29.0.0",
+      "daemonReachable": false,
+      "context": "local-default"
+    }
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV006",
+      "severity": "error",
+      "component": "docker",
+      "title": "Docker daemon unavailable",
+      "detected": [
+        "Docker CLI installed (29.0.0)",
+        "Local default Docker daemon did not answer"
+      ],
+      "cause": "The local default Docker engine is stopped, inaccessible, or uses another socket.",
+      "fix": {
+        "summary": "Start the local Docker engine and check permission to its default socket.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV006",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV006.md"
+    }
+  ]
+}

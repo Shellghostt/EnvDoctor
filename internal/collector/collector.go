@@ -32,6 +32,10 @@ type Part struct {
 	Platform *Platform
 	Shell    *Shell
 	Path     *PathInfo
+	Runtimes []Runtime
+	Ports    []Port
+	Docker   *Docker
+	Git      *Git
 }
 
 // Timing records how long one collector took, whether it failed, and why.
@@ -98,7 +102,21 @@ func (r Runner) Run(ctx context.Context) (Snapshot, []Timing) {
 			collectCtx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
 
-			part, err := c.Collect(collectCtx)
+			// A slow filesystem call may not observe cancellation. Bound the
+			// runner's wait as well; the buffered result lets a late collector exit.
+			done := make(chan outcome, 1)
+			go func() {
+				part, err := c.Collect(collectCtx)
+				done <- outcome{part: part, err: err}
+			}()
+			var part Part
+			var err error
+			select {
+			case result := <-done:
+				part, err = result.part, result.err
+			case <-collectCtx.Done():
+				err = collectCtx.Err()
+			}
 			if err != nil && errors.Is(err, context.DeadlineExceeded) {
 				err = fmt.Errorf("timeout after %s", timeout)
 			}
@@ -133,6 +151,18 @@ func (r Runner) Run(ctx context.Context) (Snapshot, []Timing) {
 }
 
 func mergePart(snapshot *Snapshot, part Part) {
+	if part.Runtimes != nil {
+		snapshot.Runtimes = part.Runtimes
+	}
+	if part.Ports != nil {
+		snapshot.Ports = part.Ports
+	}
+	if part.Docker != nil {
+		snapshot.Docker = part.Docker
+	}
+	if part.Git != nil {
+		snapshot.Git = part.Git
+	}
 	if part.Platform != nil {
 		snapshot.Platform = part.Platform
 	}

@@ -1,0 +1,31 @@
+{
+  "ruleId": "ENV001",
+  "description": "linux negative",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "path": "/tools/a",
+        "version": "3.11.1",
+        "active": true,
+        "manager": "system"
+      },
+      {
+        "name": "python",
+        "path": "/tools/b",
+        "version": "3.11.1",
+        "active": true,
+        "manager": "system"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

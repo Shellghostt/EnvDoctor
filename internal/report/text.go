@@ -19,6 +19,7 @@ func WriteText(w io.Writer, document Document) error {
 
 	writePlatform(&b, document.Snapshot)
 	writePath(&b, document.Snapshot.Path)
+	writeTools(&b, document.Snapshot)
 	fmt.Fprintf(&b, "Rules      %d registered in this build\n\n", document.Rules)
 	writeDegraded(&b, document)
 	writeFindings(&b, document.Findings)
@@ -27,6 +28,47 @@ func WriteText(w io.Writer, document Document) error {
 		return fmt.Errorf("write text report: %w", err)
 	}
 	return nil
+}
+
+func writeTools(b *strings.Builder, snapshot collector.Snapshot) {
+	for _, runtime := range snapshot.Runtimes {
+		version := runtime.Version
+		if version == "" {
+			version = "version unknown"
+		}
+		status := "candidate"
+		if runtime.Active {
+			status = "active"
+		}
+		if runtime.Expected {
+			status += ", selected"
+		}
+		if runtime.Missing {
+			status += ", missing target"
+		}
+		fmt.Fprintf(b, "Runtime    %s %s (%s; %s) %s\n", runtime.Name, version, runtime.Manager, status, runtime.Path)
+	}
+	if snapshot.Git != nil {
+		autocrlf := snapshot.Git.Autocrlf
+		if autocrlf == "" {
+			autocrlf = "unset"
+		}
+		fmt.Fprintf(b, "Git        %s; core.autocrlf=%s\n", snapshot.Git.Version, autocrlf)
+	}
+	if snapshot.Docker != nil {
+		if !snapshot.Docker.Installed {
+			b.WriteString("Docker     CLI not found in known installation locations\n")
+		} else {
+			state := "unreachable"
+			if snapshot.Docker.DaemonReachable {
+				state = "reachable"
+			}
+			fmt.Fprintf(b, "Docker     %s; %s engine %s\n", snapshot.Docker.CLIVersion, snapshot.Docker.Context, state)
+		}
+	}
+	if len(snapshot.Runtimes) > 0 || snapshot.Git != nil || snapshot.Docker != nil {
+		b.WriteString("\n")
+	}
 }
 
 func writePlatform(b *strings.Builder, snapshot collector.Snapshot) {
