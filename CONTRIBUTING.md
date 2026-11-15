@@ -10,7 +10,7 @@ Thanks for taking the time. This document is deliberately short and specific.
 3. [docs/adr/](docs/adr/) - decisions that have already been argued about. Do not relitigate them
    without a new ADR.
 4. [docs/phases/M3.md](docs/phases/M3.md) and [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md) -
-   implemented M3 evidence contracts and the remaining three-OS CI gate.
+   implemented M3 evidence contracts and verified three-OS CI gate.
 5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
    and profiling appropriate to this repository's runtime.
 

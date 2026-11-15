@@ -2,11 +2,11 @@
 
 > A cross-platform CLI that detects, diagnoses and helps resolve development environment problems.
 
-![status](https://img.shields.io/badge/status-M3_implemented-orange)
+![status](https://img.shields.io/badge/status-M3_complete-green)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
-**Status: M3 implemented and locally verified on `feat/m3-implementation`; three-OS CI pending.**
+**Status: M3 complete on `feat/m3-implementation`; Windows, Ubuntu and macOS CI passed.**
 Nine collectors feed twelve rules covering platform, shell, PATH, Python/Node runtime, requested TCP ports,
 effective Git config, local Docker/API metadata, explicit project dependencies and proxy configuration.
 Reports are plain text or versioned JSON; `explain` and `rules --json` work offline.
@@ -204,8 +204,9 @@ govulncheck ./...
 
 The suite includes 172 exact golden cases, preserving all 54 original M2 snapshots and adding 118 cases.
 It builds the CLI and checks those cases through real subprocesses, validating JSON and exit codes.
-Native Windows and Linux race suites passed on the final M3 source. Both macOS architectures cross-build;
-native M3 macOS execution remains pending the three-OS CI matrix. Commands, allocation measurements,
+Native Windows and Linux race suites passed locally. The native Windows, Ubuntu and macOS race/test/build
+matrix, lint and vulnerability scan passed in [M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
+Both macOS architectures also cross-build. Commands, allocation measurements,
 socket lifecycle evidence and limits are in [docs/testing/m3-validation.md](docs/testing/m3-validation.md).
 
 `make docs` regenerates all twelve rule pages from the same registry as findings, `explain` and `rules`.
@@ -240,7 +241,7 @@ goreleaser build --snapshot --clean
 
 ## Roadmap
 
-M3 is **implemented and locally verified; feature-branch CI pending**. Read the
+M3 is **complete on the feature branch, including three-OS CI**. Read the
 [M3 acceptance gates](docs/phases/M3.md), [accepted ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md)
 and [validation record](docs/testing/m3-validation.md) for its contracts and evidence.
 
@@ -248,7 +249,7 @@ and [validation record](docs/testing/m3-validation.md) for its contracts and evi
 |---|---|---|
 | M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
 | M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (merged)** |
-| M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Implemented; CI pending** |
+| M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Done (feature branch, CI passed)** |
 | M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started |
 | M5 | Safe, confirmed automated remediation | Not started |
 | M6 | Windows, Linux, macOS packaging and signed releases | Not started |

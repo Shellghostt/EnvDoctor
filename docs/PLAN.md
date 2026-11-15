@@ -24,8 +24,9 @@ updated: 2026-11-15
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`. M3 is **implemented and locally verified on
-`feat/m3-implementation`; three-OS feature-branch CI pending**. [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
+M2 is complete and merged into `main`. M3 is **complete on `feat/m3-implementation`, including
+[three-OS CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978)**.
+[ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
 was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
 and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
@@ -35,7 +36,7 @@ project: EnvDoctor
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1-M3 collection and twelve rules work; M3 CI and M4-M6 remain
+functional: partial            # M1-M3 collection and twelve rules work; M4-M6 remain
 
 implemented:
   - cobra CLI with diagnose, version, offline explain and rules --json
@@ -483,7 +484,7 @@ See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, mea
 
 **Deliverable:** rules ENV007–ENV012, Docker and dependency inspectors, `explain` and `rules --json`.
 
-Status: **Implemented and locally verified on `feat/m3-implementation`; three-OS CI pending.**
+Status: **Complete on `feat/m3-implementation`, including native Windows/Ubuntu/macOS CI.**
 Follow [M3 requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md) and
 [M3 validation](testing/m3-validation.md) for evidence, tests and limits.
 
@@ -497,11 +498,13 @@ Follow [M3 requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rule
 - [x] Normal diagnosis and fixtures initiate no remote probes; proxy reachability requires explicit opt-in
 - [x] Unknown versions, ambiguous runners, denied/missing evidence and redaction have three-OS fixtures
 - [x] `make test`, native Windows/Linux race, `make lint`, build, docs drift and vulnerability checks pass
-- [ ] The final M3 feature branch passes the Windows/Ubuntu/macOS CI matrix
+- [x] The final M3 feature branch passes the Windows/Ubuntu/macOS CI matrix
 
 All 172 fixtures pass through the engine and built CLI. Nine collectors complete real Windows inspection
 without degradation; local proxy tests send zero application bytes and release resources. Both macOS
-architectures cross-compile, but native M3 macOS execution awaits CI. The validation record names the
+architectures cross-compile. [CI 43723839978](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978)
+passed native Windows/Ubuntu/macOS race, tests and builds, plus lint and vulnerability scanning.
+The validation record names the
 tests and records local measurements without claiming M6 clean-host/release coverage.
 
 ### M4 — Reports and diagnostic bundles
@@ -652,8 +655,8 @@ Explicitly out of scope: malware detection, host compromise assessment.
 ## 19. Anti-hallucination contract
 
 **Facts:** M1–M3 collection, twelve pure diagnostic rules, plain-text/JSON reporting, offline metadata
-commands and bounded offline diagnosis are implemented and locally tested. Native Windows/Linux race
-suites pass; M3 three-OS feature-branch CI remains pending. Bundles, automatic fixes, rules ENV013–ENV018
+commands and bounded offline diagnosis are implemented and tested. Native Windows/Linux local race
+suites and native Windows/Ubuntu/macOS M3 CI pass. Bundles, automatic fixes, rules ENV013–ENV018
 and signed releases remain future work. Runtime discovery does not execute PATH candidates and unknown
 metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 

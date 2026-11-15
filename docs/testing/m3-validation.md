@@ -1,10 +1,12 @@
 # EnvDoctor M3 validation — 2026-11-15
 
-M3 is implemented and locally verified on `feat/m3-implementation`, based on merged M2
+M3 is complete on `feat/m3-implementation`, based on merged M2
 `c7e2c84`. [ADR 0005](../adr/0005-m3-evidence-and-rule-registry.md) was accepted and committed
 as `3e22674` before implementation. Implementation commit: `d185e5b`.
 This record covers the final M3 source, not a release or merge.
-The feature branch has not been pushed; its three-OS CI execution remains pending.
+The feature branch was pushed on 2026-11-15. [CI 43723839978](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978)
+passed for `fbf79dd`: native Windows, Ubuntu and macOS race/test/build/documentation checks, lint and
+the vulnerability scan. The run completed at 14:21:34 UTC with all five jobs successful.
 
 ## Environment and gates
 
@@ -29,10 +31,11 @@ Native race tests use the existing MSYS2 UCRT64 GCC 16.2 toolchain targeting
 | `govulncheck ./...` | Passed on final source: no vulnerabilities found |
 | `git diff --check` | Passed |
 | CodeGraph refresh/status | Current: 75 files, 819 nodes, 1,804 edges; local index is ignored |
-| M3 three-OS GitHub CI | Pending; no M3 branch push or native macOS run yet |
+| M3 three-OS GitHub CI | Passed for `fbf79dd`: native Windows/Ubuntu/macOS race, tests, builds and docs checks, plus lint/security; [run 43723839978](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978) |
 
 `make build` disables CGO only for that target, preserving the static binary contract without disabling
-the race detector for `make race`. Cross-compilation confirms compilation, not native macOS execution.
+the race detector for `make race`. Cross-compilation confirms compilation; the CI matrix supplies
+native macOS execution evidence.
 The original 54 M2 fixture JSON files are unchanged; 118 additional cases bring the total to 172.
 
 ## Acceptance evidence
@@ -87,8 +90,8 @@ from 3 to 2; retained heap after GC changed from 377,944 to 340,936 bytes. A 1,0
 socket allocations. Profiles and compiled test binaries stay local beneath ignored `bin/`.
 
 These results cover repeated creation/closure in this workload. They do not establish universal absence
-of leaks or a process RSS budget. Native macOS resource measurements and M6 clean-host budgets remain
-unmeasured. MemGuard and Eclipse MAT do not analyze this Go runtime and were not used as gates.
+of leaks or a process RSS budget. Native macOS allocation benchmarks/profiles and M6 clean-host budgets
+were not recorded. MemGuard and Eclipse MAT do not analyze this Go runtime and were not used as gates.
 
 ## Corrections found during verification
 

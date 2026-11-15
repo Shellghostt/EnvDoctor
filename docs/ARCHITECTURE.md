@@ -1,6 +1,6 @@
 # EnvDoctor Architecture
 
-**Status: M3 implemented and locally verified; three-OS feature-branch CI pending.** Nine collectors feed
+**Status: M3 complete on the feature branch; three-OS CI passed.** Nine collectors feed
 twelve pure rules and a plain-text/JSON report. Offline metadata commands and generated pages share the
 same rule registry. Bundles, automatic fixes and interactive output remain planned.
 The authoritative specification is [PLAN.md](PLAN.md); [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
@@ -88,5 +88,6 @@ design.
 
 Read [phase requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md) and
 [M3 validation](testing/m3-validation.md) for implemented contracts, tests and limits. Native Windows
-and Linux race suites passed; native macOS execution remains pending CI.
+and Linux race suites passed locally; native Windows/Ubuntu/macOS tests and race suites also passed in
+[M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
 [Development tools](DEVELOPMENT-TOOLS.md) records navigation and runtime-profiling coverage.

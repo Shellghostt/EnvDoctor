@@ -21,7 +21,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   CLI, cancellation and socket lifecycle regressions.
 - Accepted [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md),
   [M3 acceptance requirements](docs/phases/M3.md), [validation evidence](docs/testing/m3-validation.md)
-  and [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is locally verified; branch CI is pending.
+  and [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is complete on the feature branch;
+  [CI 43723839978](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978) passed native
+  Windows/Ubuntu/macOS race, tests and builds, plus lint and the vulnerability scan.
 
 - M2 runtime, requested TCP-port and Git collectors, plus the local Docker probe needed by ENV006.
 - Rules ENV001–ENV006 with deterministic evidence, manual suggestions and rule documentation.
