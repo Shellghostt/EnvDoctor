@@ -1,0 +1,31 @@
+{
+  "ruleId": "ENV009",
+  "description": "Synthetic linux unknown-runner-version; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app",
+      "package": {
+        "manifest": "/workspace/app/package.json",
+        "declared": {
+          "name": "pnpm",
+          "version": "9.0.0"
+        },
+        "runner": {
+          "name": "pnpm"
+        },
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ]
+      }
+    }
+  },
+  "expectedFindings": []
+}

@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"github.com/shellghostt/envdoctor/internal/system"
 	"strings"
 )
@@ -28,9 +29,10 @@ func (c GitCollector) Collect(ctx context.Context) (Part, error) {
 	if err != nil {
 		return Part{}, err
 	}
-	g := &Git{Version: strings.TrimSpace(strings.TrimPrefix(string(version), "git version "))}
+	g := &Git{Version: strings.TrimSpace(strings.TrimPrefix(string(version), "git version ")), IdentityChecked: true}
 	for _, key := range []string{"user.name", "user.email", "core.autocrlf"} {
-		out, err := run(ctx, path, "config", "--get", key)
+		args := []string{"config", "--null", "--show-origin", "--get", key}
+		out, err := run(ctx, path, args...)
 		if ctx.Err() != nil {
 			return Part{}, ctx.Err()
 		}
@@ -40,14 +42,40 @@ func (c GitCollector) Collect(ctx context.Context) (Part, error) {
 			}
 			return Part{}, err
 		}
-		value := strings.TrimSpace(string(out))
+		fields := strings.Split(string(out), "\x00")
+		if len(fields) != 3 || fields[0] == "" || fields[2] != "" {
+			return Part{}, fmt.Errorf("Git config returned invalid origin metadata")
+		}
+		origin, value := fields[0], strings.TrimSpace(fields[1])
+		// Older Git versions lack bool-or-str. Read the input mode literally,
+		// otherwise use the longstanding bool type to canonicalize aliases.
+		if key == "core.autocrlf" && value != "input" {
+			out, err = run(ctx, path, "config", "--type=bool", "--null", "--show-origin", "--get", "core.autocrlf")
+			if ctx.Err() != nil {
+				return Part{}, ctx.Err()
+			}
+			if err != nil {
+				return Part{}, err
+			}
+			fields = strings.Split(string(out), "\x00")
+			if len(fields) != 3 || fields[0] == "" || fields[2] != "" {
+				return Part{}, fmt.Errorf("Git config returned invalid boolean origin metadata")
+			}
+			origin, value = fields[0], strings.TrimSpace(fields[1])
+		}
 		switch key {
 		case "user.name":
 			g.UserName = &value
+			g.UserNameOrigin = origin
 		case "user.email":
 			g.UserEmail = &value
+			g.UserEmailOrigin = origin
 		case "core.autocrlf":
+			if value != "true" && value != "false" && value != "input" {
+				return Part{}, fmt.Errorf("Git core.autocrlf is unsupported or invalid")
+			}
 			g.Autocrlf = value
+			g.AutocrlfOrigin = origin
 		}
 	}
 	return Part{Git: g}, nil

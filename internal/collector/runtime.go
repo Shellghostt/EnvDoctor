@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"errors"
 	"github.com/shellghostt/envdoctor/internal/system"
 	"os"
 	"path/filepath"
@@ -42,8 +43,18 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 	out := []Runtime{}
 	seen := map[string]int{}
 	active := map[string]bool{}
+	var inspectionErr error
 	expected := map[string]string{}
+	var environment *PythonEnvironment
 	if v := getenv("VIRTUAL_ENV"); v != "" {
+		environment = &PythonEnvironment{Root: v}
+		if filepath.IsAbs(v) {
+			data, readErr := system.ReadSmallFile(filepath.Join(v, "pyvenv.cfg"))
+			canonical, resolveErr := system.ResolvePath(v)
+			if readErr == nil && resolveErr == nil && knownVenvMetadata(data) {
+				environment.CanonicalRoot, environment.MetadataKnown = canonical, true
+			}
+		}
 		sub := "bin"
 		if goos == "windows" {
 			sub = "Scripts"
@@ -56,21 +67,37 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 		expected["node"] = filepath.Join(v, "node"+suffix)
 	}
 	add := func(path, name string, isActive, isExpected bool) {
-		resolved, err := filepath.EvalSymlinks(path)
-		missing := err != nil
-		if missing {
+		packaged := packagedRuntimePath(path, goos)
+		resolved := path
+		var err error
+		if !packaged {
+			resolved, err = filepath.EvalSymlinks(path)
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			inspectionErr = err
+		}
+		missing := errors.Is(err, os.ErrNotExist)
+		if err != nil {
 			resolved = path
 		}
 		venvRoot := filepath.Dir(filepath.Dir(path))
 		var venvData []byte
-		if name == "python" {
-			venvData, _ = system.ReadSmallFile(filepath.Join(venvRoot, "pyvenv.cfg"))
+		if name == "python" && !packaged {
+			var readErr error
+			venvData, readErr = system.ReadSmallFile(filepath.Join(venvRoot, "pyvenv.cfg"))
+			if readErr != nil && !errors.Is(readErr, os.ErrNotExist) {
+				inspectionErr = readErr
+			}
 		}
 		key := name + "|" + filepath.Clean(resolved)
 		// A venv may symlink to the system interpreter; its invocation directory
 		// still changes Python's environment. Deduplicate aliases within that venv.
 		if len(venvData) > 0 {
-			key += "|" + venvRoot
+			canonicalRoot, rootErr := system.ResolvePath(venvRoot)
+			if rootErr != nil {
+				canonicalRoot = venvRoot
+			}
+			key += "|" + canonicalRoot
 		}
 		if goos == "windows" {
 			key = strings.ToLower(key)
@@ -97,7 +124,7 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 				version = matches[len(matches)-1][1]
 			}
 		}
-		if version == "" && !missing {
+		if version == "" && !missing && !packaged {
 			version = system.FileVersion(resolved)
 		}
 		if version == "" && len(venvData) > 0 {
@@ -108,8 +135,28 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 				}
 			}
 		}
+		resolution := "known"
+		if missing || err != nil || packaged || strings.Contains(lower, "/shims/") {
+			resolution = "unknown"
+		}
+		if resolution == "known" && name == "python" {
+			native, nativeErr := system.NativeExecutable(resolved, goos)
+			if !native {
+				resolution = "unknown"
+			}
+			if nativeErr != nil {
+				inspectionErr = nativeErr
+			}
+		}
+		environmentRoot := ""
+		if knownVenvMetadata(venvData) {
+			environmentRoot, _ = system.ResolvePath(venvRoot)
+			if environmentRoot == "" {
+				resolution = "unknown"
+			}
+		}
 		seen[key] = len(out)
-		out = append(out, Runtime{Name: name, Version: version, Path: path, Manager: manager, Active: isActive, Expected: isExpected, Missing: missing})
+		out = append(out, Runtime{Name: name, Version: version, Path: path, Manager: manager, Active: isActive, Expected: isExpected, Missing: missing, ResolvedPath: resolved, Resolution: resolution, EnvironmentRoot: environmentRoot})
 	}
 	for _, dir := range strings.Split(getenv("PATH"), sep) {
 		if err := ctx.Err(); err != nil {
@@ -122,10 +169,17 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 		for _, alias := range aliases {
 			p := filepath.Join(dir, alias+suffix)
 			info, err := os.Lstat(p)
+			packaged := packagedRuntimePath(p, goos)
+			if err != nil && !errors.Is(err, os.ErrNotExist) && !packaged {
+				inspectionErr = err
+			}
 			if err != nil || info.IsDir() {
 				continue
 			}
 			resolvedInfo, statErr := os.Stat(p)
+			if statErr != nil && !errors.Is(statErr, os.ErrNotExist) && !packaged {
+				inspectionErr = statErr
+			}
 			usable := statErr == nil && resolvedInfo.Mode().IsRegular()
 			if goos != "windows" && usable && resolvedInfo.Mode()&0111 == 0 {
 				continue
@@ -145,5 +199,25 @@ func (c RuntimeCollector) Collect(ctx context.Context) (Part, error) {
 			add(p, name, false, true)
 		}
 	}
-	return Part{Runtimes: out}, nil
+	part := Part{Runtimes: out, PythonEnvironment: environment}
+	if inspectionErr != nil {
+		part.Errors = []CollectorError{{Collector: "runtimes", Message: "runtime metadata inspection failed or was denied"}}
+	}
+	return part, nil
+}
+
+// App execution aliases and protected MSIX files cannot establish interpreter
+// resolution through ordinary filesystem APIs. Preserve their unknown state.
+func packagedRuntimePath(path, goos string) bool {
+	return goos == "windows" && strings.Contains(strings.ToLower(filepath.ToSlash(path)), "/windowsapps/")
+}
+
+func knownVenvMetadata(data []byte) bool {
+	for _, line := range strings.Split(string(data), "\n") {
+		key, value, ok := strings.Cut(line, "=")
+		if ok && (strings.TrimSpace(key) == "home" && strings.TrimSpace(value) != "" || strings.TrimSpace(key) == "version" && numericVersion.MatchString(strings.TrimSpace(value))) {
+			return true
+		}
+	}
+	return false
 }

@@ -1,0 +1,28 @@
+{
+  "ruleId": "ENV010",
+  "description": "Synthetic darwin negative; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "git": {
+      "version": "2.45.0",
+      "userName": "Developer",
+      "userEmail": "developer@example.invalid",
+      "autocrlf": "true",
+      "identityChecked": true,
+      "autocrlfOrigin": "file:/workspace/app/.git/config",
+      "userNameOrigin": "file:/workspace/app/.git/config",
+      "userEmailOrigin": "file:/workspace/app/.git/config"
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app"
+    }
+  },
+  "expectedFindings": []
+}

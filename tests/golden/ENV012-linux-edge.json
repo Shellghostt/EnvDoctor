@@ -1,0 +1,24 @@
+{
+  "ruleId": "ENV012",
+  "description": "Synthetic linux edge; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "proxies": [
+      {
+        "variable": "HTTPS_PROXY",
+        "url": "http://127.0.0.1:8888",
+        "host": "127.0.0.1",
+        "port": 8888,
+        "probe": "unknown"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

@@ -1,0 +1,33 @@
+{
+  "ruleId": "ENV009",
+  "description": "Synthetic darwin same-family; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app",
+      "package": {
+        "manifest": "/workspace/app/package.json",
+        "declared": {
+          "name": "npm",
+          "version": "10.0.0"
+        },
+        "runner": {
+          "name": "npm",
+          "version": "10.0.0"
+        },
+        "lockfiles": [
+          "package-lock.json",
+          "npm-shrinkwrap.json"
+        ]
+      }
+    }
+  },
+  "expectedFindings": []
+}

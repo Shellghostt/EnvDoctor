@@ -1,0 +1,43 @@
+{
+  "ruleId": "ENV012",
+  "description": "Synthetic linux positive; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "proxies": [
+      {
+        "variable": "HTTPS_PROXY",
+        "url": "http://127.0.0.1:8888",
+        "host": "127.0.0.1",
+        "port": 8888,
+        "probe": "unreachable"
+      }
+    ]
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV012",
+      "severity": "info",
+      "component": "network",
+      "title": "Configured proxy did not accept a connection",
+      "detected": [
+        "HTTPS_PROXY http://127.0.0.1:8888: connection refused or no route"
+      ],
+      "cause": "The configured proxy endpoint refused the bounded TCP connection or had no reachable network route.",
+      "fix": {
+        "summary": "Check the configured proxy host/port and local network or VPN, then repeat the opt-in probe.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV012 --probe-network",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV012.md"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "ruleId": "ENV011",
+  "description": "Synthetic windows unknown-environment; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "windows",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "pythonEnvironment": {
+      "root": "C:\\projects\\app\\.venv",
+      "metadataKnown": false
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "version": "3.12.0",
+        "path": "C:\\Python312\\python.exe",
+        "manager": "system",
+        "active": true,
+        "resolvedPath": "C:\\Python312\\python.exe",
+        "resolution": "known"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

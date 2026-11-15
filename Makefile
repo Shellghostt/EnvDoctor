@@ -1,13 +1,17 @@
-BINARY := envdoctor
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+ifeq ($(OS),Windows_NT)
+EXE_EXT := .exe
+endif
+BINARY := envdoctor$(EXE_EXT)
+VERSION ?= $(shell git describe --tags --always --dirty)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: bootstrap build test race lint fmt vet run docker clean
+.PHONY: bootstrap build test race lint fmt vet docs check-docs run docker clean
 
 bootstrap:
 	go mod download
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
+build: export CGO_ENABLED := 0
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/$(BINARY) ./cmd/envdoctor
 
@@ -26,6 +30,12 @@ fmt:
 
 vet:
 	go vet ./...
+
+docs:
+	go run ./cmd/rulegen
+
+check-docs:
+	go run ./cmd/rulegen --check
 
 run: build
 	./bin/$(BINARY)

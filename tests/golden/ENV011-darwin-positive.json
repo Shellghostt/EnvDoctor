@@ -1,0 +1,51 @@
+{
+  "ruleId": "ENV011",
+  "description": "Synthetic darwin positive; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "pythonEnvironment": {
+      "root": "/workspace/app/.venv",
+      "canonicalRoot": "/workspace/app/.venv",
+      "metadataKnown": true
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "version": "3.12.0",
+        "path": "/usr/bin/python3",
+        "manager": "system",
+        "active": true,
+        "resolvedPath": "/usr/bin/python3",
+        "resolution": "known"
+      }
+    ]
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV011",
+      "severity": "warning",
+      "component": "python",
+      "title": "Active virtual environment differs from selected Python",
+      "detected": [
+        "Active virtual environment: /workspace/app/.venv",
+        "Selected Python invocation: /usr/bin/python3"
+      ],
+      "cause": "The active environment metadata and the selected Python invocation refer to different environments.",
+      "fix": {
+        "summary": "Reactivate the intended virtual environment and check both Python aliases in the current shell.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV011",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV011.md"
+    }
+  ]
+}

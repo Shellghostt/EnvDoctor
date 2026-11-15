@@ -29,13 +29,20 @@ type Collector interface {
 // The type is a struct rather than an interface so that adding a collector is
 // a compile-time change here, reviewed once.
 type Part struct {
-	Platform *Platform
-	Shell    *Shell
-	Path     *PathInfo
-	Runtimes []Runtime
-	Ports    []Port
-	Docker   *Docker
-	Git      *Git
+	Platform          *Platform
+	Shell             *Shell
+	Path              *PathInfo
+	Runtimes          []Runtime
+	Ports             []Port
+	Docker            *Docker
+	Git               *Git
+	Dependencies      *Dependencies
+	PythonEnvironment *PythonEnvironment
+	Proxies           []Proxy
+	NoProxyConfigured bool
+	// Errors retain certain typed evidence while disabling dependent rules.
+	// An ordinary returned error still discards the entire part.
+	Errors []CollectorError
 }
 
 // Timing records how long one collector took, whether it failed, and why.
@@ -146,11 +153,28 @@ func (r Runner) Run(ctx context.Context) (Snapshot, []Timing) {
 			continue
 		}
 		mergePart(&snapshot, result.part)
+		for _, failure := range result.part.Errors {
+			if failure.Collector == name {
+				timings[len(timings)-1].Err = errors.New(failure.Message)
+				break
+			}
+		}
 	}
 	return snapshot, timings
 }
 
 func mergePart(snapshot *Snapshot, part Part) {
+	snapshot.Errors = append(snapshot.Errors, part.Errors...)
+	if part.Dependencies != nil {
+		snapshot.Dependencies = part.Dependencies
+	}
+	if part.PythonEnvironment != nil {
+		snapshot.PythonEnvironment = part.PythonEnvironment
+	}
+	if part.Proxies != nil {
+		snapshot.Proxies = part.Proxies
+		snapshot.NoProxyConfigured = part.NoProxyConfigured
+	}
 	if part.Runtimes != nil {
 		snapshot.Runtimes = part.Runtimes
 	}

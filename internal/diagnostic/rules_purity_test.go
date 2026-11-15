@@ -4,16 +4,31 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"path/filepath"
 	"strconv"
 	"testing"
 )
 
 func TestBuiltinRulesOnlyImportPureDependencies(t *testing.T) {
-	f, err := parser.ParseFile(token.NewFileSet(), "rules.go", nil, 0)
+	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	allowed := map[string]bool{"fmt": true, "sort": true, "strconv": true, "strings": true, "github.com/shellghostt/envdoctor/internal/collector": true}
+	for _, file := range files {
+		if filepath.Ext(file) != ".go" || file == "fixture.go" || len(file) >= 8 && file[len(file)-8:] == "_test.go" {
+			continue
+		}
+		t.Run(file, func(t *testing.T) { checkPureFile(t, file) })
+	}
+}
+
+func checkPureFile(t *testing.T, file string) {
+	t.Helper()
+	f, err := parser.ParseFile(token.NewFileSet(), file, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	allowed := map[string]bool{"fmt": true, "sort": true, "strconv": true, "strings": true, "path": true, "regexp": true, "github.com/shellghostt/envdoctor/internal/collector": true}
 	for _, i := range f.Imports {
 		path, _ := strconv.Unquote(i.Path.Value)
 		if !allowed[path] {

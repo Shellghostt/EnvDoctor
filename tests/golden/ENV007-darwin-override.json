@@ -1,0 +1,47 @@
+{
+  "ruleId": "ENV007",
+  "description": "Synthetic darwin override; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "docker": {
+      "installed": true,
+      "cliVersion": "26.0.0",
+      "daemonReachable": true,
+      "context": "local-default",
+      "probeStatus": "available",
+      "clientApi": "1.48",
+      "serverApi": "1.48",
+      "serverMinApi": "1.44",
+      "apiOverride": "1.53"
+    }
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV007",
+      "severity": "warning",
+      "component": "docker",
+      "title": "Docker client and daemon API incompatibility",
+      "detected": [
+        "Client API maximum: 1.48",
+        "Explicit API override: 1.53",
+        "Server API range: 1.44 to 1.48"
+      ],
+      "cause": "The advertised Docker API ranges or explicit API override cannot overlap the daemon's supported range.",
+      "fix": {
+        "summary": "Remove an unsupported Docker API override or choose a client supported by the local daemon.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV007",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV007.md"
+    }
+  ]
+}

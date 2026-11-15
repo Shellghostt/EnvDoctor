@@ -28,6 +28,9 @@ func Stat(path string) (os.FileInfo, error) {
 	return os.Stat(path)
 }
 
+func WorkingDir() (string, error)             { return os.Getwd() }
+func ResolvePath(path string) (string, error) { return filepath.EvalSymlinks(path) }
+
 // PlatformInfo returns a human-readable operating system version and whether
 // the current process is elevated. It never fails: if the version cannot be
 // determined the string is empty, because a missing version is a cosmetic gap

@@ -1,0 +1,31 @@
+{
+  "ruleId": "ENV006",
+  "description": "Synthetic darwin unsupported; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "docker": {
+      "installed": true,
+      "cliVersion": "26.0.0",
+      "daemonReachable": false,
+      "context": "local-default",
+      "probeStatus": "unsupported",
+      "clientApi": "1.40",
+      "serverApi": "1.48",
+      "serverMinApi": "1.44"
+    },
+    "errors": [
+      {
+        "collector": "docker",
+        "message": "Local Docker inspection unsupported"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

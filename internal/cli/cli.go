@@ -57,7 +57,8 @@ func Main(args []string, app App) int {
 	root.SetArgs(args[1:])
 
 	if err := root.Execute(); err != nil {
-		_, _ = fmt.Fprintf(app.Stderr, "error: %v\n", err)
+		home, _ := app.HomeDir()
+		_, _ = fmt.Fprintf(app.Stderr, "error: %s\n", collector.RedactText(err.Error(), home))
 		var failure toolFailure
 		if errors.As(err, &failure) {
 			return ExitToolFailure
@@ -92,8 +93,8 @@ func (a *App) applyDefaults() {
 	}
 }
 
-// DefaultCollectors returns the seven M2 collectors. Network inspection runs
-// only for requested ports; Docker probes only the default local engine.
+// DefaultCollectors preserves the M2 collectors and adds project/proxy evidence.
+// Proxy collection performs no network work without an explicit diagnose flag.
 func DefaultCollectors() []collector.Collector {
 	return []collector.Collector{
 		collector.NewPlatformCollector(),
@@ -103,6 +104,8 @@ func DefaultCollectors() []collector.Collector {
 		collector.PortCollector{},
 		collector.GitCollector{},
 		collector.DockerCollector{},
+		collector.DependencyCollector{},
+		collector.ProxyCollector{},
 	}
 }
 
@@ -121,6 +124,8 @@ func (a *App) newRoot() *cobra.Command {
 
 	root.AddCommand(a.newDiagnoseCommand())
 	root.AddCommand(a.newVersionCommand())
+	root.AddCommand(a.newExplainCommand())
+	root.AddCommand(a.newRulesCommand())
 	return root
 }
 

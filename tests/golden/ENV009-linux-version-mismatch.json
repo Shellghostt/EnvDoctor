@@ -1,0 +1,53 @@
+{
+  "ruleId": "ENV009",
+  "description": "Synthetic linux version-mismatch; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app",
+      "package": {
+        "manifest": "/workspace/app/package.json",
+        "declared": {
+          "name": "pnpm",
+          "version": "9.0.0"
+        },
+        "runner": {
+          "name": "pnpm",
+          "version": "10.0.0"
+        },
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ]
+      }
+    }
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV009",
+      "severity": "warning",
+      "component": "node",
+      "title": "Package manager and lockfile mismatch",
+      "detected": [
+        "Declared package manager: pnpm@9.0.0",
+        "Explicit runner: pnpm@10.0.0",
+        "Observed lockfile: pnpm-lock.yaml"
+      ],
+      "cause": "The project's declared package manager, selected runner or lockfile families disagree.",
+      "fix": {
+        "summary": "Choose the intended package manager and version, then reconcile the declaration and lockfiles after reviewing project policy.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV009",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV009.md"
+    }
+  ]
+}

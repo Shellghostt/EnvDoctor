@@ -58,6 +58,8 @@ func (a *App) newDiagnoseCommand() *cobra.Command {
 	cmd.Flags().StringVar(&opts.Rule, "rule", "", "only evaluate this rule id (ENV001)")
 	cmd.Flags().IntSliceVar(&opts.Ports, "port", nil, "TCP ports your application needs (repeatable or comma separated)")
 	cmd.Flags().StringVar(&opts.FixtureDir, "fixture-dir", "", "read snapshot.json in this directory; do not inspect this machine")
+	cmd.Flags().BoolVar(&opts.ProbeNetwork, "probe-network", false, "probe configured proxy endpoints with a one-second total deadline")
+	cmd.Flags().StringVar(&opts.PackageManager, "package-manager", "", "explicit project runner: npm, pnpm, yarn or bun, optionally @major.minor.patch")
 
 	return cmd
 }
@@ -77,8 +79,16 @@ func (a *App) diagnose(ctx context.Context, opts config.Options) (report.Documen
 	} else {
 		collectors := append([]collector.Collector(nil), a.Collectors...)
 		for i, c := range collectors {
-			if _, ok := c.(collector.PortCollector); ok {
-				collectors[i] = collector.PortCollector{Requested: opts.Ports}
+			switch value := c.(type) {
+			case collector.PortCollector:
+				value.Requested = opts.Ports
+				collectors[i] = value
+			case collector.ProxyCollector:
+				value.ProbeNetwork = opts.ProbeNetwork
+				collectors[i] = value
+			case collector.DependencyCollector:
+				value.PackageManager = opts.PackageManager
+				collectors[i] = value
 			}
 		}
 		runner := collector.Runner{Collectors: collectors, Timeout: config.CollectorTimeout, Now: a.Now}
@@ -86,12 +96,11 @@ func (a *App) diagnose(ctx context.Context, opts config.Options) (report.Documen
 		snapshot.RequestedPorts = opts.Ports
 	}
 
-	if home, err := a.HomeDir(); err == nil {
-		snapshot.Redact(home)
-		for i := range timings {
-			if timings[i].Err != nil {
-				timings[i].Err = errors.New(collector.RedactText(timings[i].Err.Error(), home))
-			}
+	home, _ := a.HomeDir()
+	snapshot.Redact(home)
+	for i := range timings {
+		if timings[i].Err != nil {
+			timings[i].Err = errors.New(collector.RedactText(timings[i].Err.Error(), home))
 		}
 	}
 

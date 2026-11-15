@@ -1,0 +1,45 @@
+{
+  "ruleId": "ENV008",
+  "description": "Synthetic linux positive; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app",
+      "requirementsFile": "/workspace/app/envdoctor.requirements.json",
+      "requirements": [
+        {
+          "kind": "tool",
+          "name": "cmake",
+          "status": "missing"
+        }
+      ]
+    }
+  },
+  "expectedFindings": [
+    {
+      "ruleId": "ENV008",
+      "severity": "error",
+      "component": "deps",
+      "title": "Required project dependency is missing",
+      "detected": [
+        "Required tool cmake: no usable executable on the inspected PATH"
+      ],
+      "cause": "A dependency explicitly required by this project is absent from the inspected PATH or declared installation prefix.",
+      "fix": {
+        "summary": "Provide the declared tool on PATH or the required development files at the project's declared library prefix.",
+        "automatic": false,
+        "requiresElevation": false,
+        "reversible": true
+      },
+      "verify": "envdoctor diagnose --rule ENV008",
+      "docs": "https://github.com/shellghostt/envdoctor/blob/main/docs/rules/ENV008.md"
+    }
+  ]
+}

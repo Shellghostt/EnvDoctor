@@ -46,6 +46,9 @@ func writeTools(b *strings.Builder, snapshot collector.Snapshot) {
 		if runtime.Missing {
 			status += ", missing target"
 		}
+		if runtime.Resolution == "unknown" {
+			status += ", resolution unknown"
+		}
 		fmt.Fprintf(b, "Runtime    %s %s (%s; %s) %s\n", runtime.Name, version, runtime.Manager, status, runtime.Path)
 	}
 	if snapshot.Git != nil {
@@ -63,8 +66,22 @@ func writeTools(b *strings.Builder, snapshot collector.Snapshot) {
 			if snapshot.Docker.DaemonReachable {
 				state = "reachable"
 			}
+			if snapshot.Docker.ProbeStatus != "" {
+				state = snapshot.Docker.ProbeStatus
+			}
 			fmt.Fprintf(b, "Docker     %s; %s engine %s\n", snapshot.Docker.CLIVersion, snapshot.Docker.Context, state)
+			if snapshot.Docker.SelectedContext != "" {
+				fmt.Fprintf(b, "Context    %s; %s (metadata only)\n", snapshot.Docker.SelectedContext, snapshot.Docker.SelectedHost)
+			}
 		}
+	}
+	if snapshot.Dependencies != nil {
+		for _, dependency := range snapshot.Dependencies.Requirements {
+			fmt.Fprintf(b, "Dependency %s (%s): %s %s\n", dependency.Name, dependency.Kind, dependency.Status, dependency.Path)
+		}
+	}
+	for _, proxy := range snapshot.Proxies {
+		fmt.Fprintf(b, "Proxy      %s %s; reachability %s\n", proxy.Variable, proxy.URL, proxy.Probe)
 	}
 	if len(snapshot.Runtimes) > 0 || snapshot.Git != nil || snapshot.Docker != nil {
 		b.WriteString("\n")

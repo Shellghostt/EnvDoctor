@@ -96,19 +96,23 @@ func InstalledTool(name string) string {
 }
 
 type limitedOutput struct {
-	bytes.Buffer
+	// Do not embed bytes.Buffer: its promoted ReadFrom lets io.Copy bypass Write.
+	buffer   bytes.Buffer
 	overflow bool
 }
 
 func (b *limitedOutput) Write(p []byte) (int, error) {
 	n := len(p)
-	if b.Len()+n > 1<<20 {
+	if b.buffer.Len()+n > 1<<20 {
 		b.overflow = true
 		return 0, errors.New("inspection output exceeds 1 MiB")
 	}
-	_, _ = b.Buffer.Write(p)
+	_, _ = b.buffer.Write(p)
 	return n, nil
 }
+
+func (b *limitedOutput) Bytes() []byte  { return b.buffer.Bytes() }
+func (b *limitedOutput) String() string { return b.buffer.String() }
 func RunTool(ctx context.Context, path string, args ...string) ([]byte, error) {
 	if !filepath.IsAbs(path) {
 		return nil, errors.New("tool is not installed in a known location")
@@ -120,24 +124,40 @@ func RunTool(ctx context.Context, path string, args ...string) ([]byte, error) {
 	for _, entry := range os.Environ() {
 		key, _, _ := strings.Cut(entry, "=")
 		key = strings.ToUpper(key)
-		if strings.HasPrefix(key, "GIT_") || strings.HasPrefix(key, "DOCKER_") {
+		if strings.HasPrefix(key, "GIT_") || strings.HasPrefix(key, "DOCKER_") ||
+			strings.HasPrefix(key, "LD_") || strings.HasPrefix(key, "DYLD_") ||
+			key == "HTTP_PROXY" || key == "HTTPS_PROXY" || key == "ALL_PROXY" || key == "NO_PROXY" {
 			continue
 		}
 		cmd.Env = append(cmd.Env, entry)
 	}
 	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0", "GIT_OPTIONAL_LOCKS=0")
 	var stdout limitedOutput
+	var stderr limitedOutput
 	cmd.Stdout = &stdout
-	cmd.Stderr = io.Discard
+	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	if stdout.overflow {
+	if stdout.overflow || stderr.overflow {
 		return nil, errors.New("inspection output exceeds 1 MiB")
 	}
-	return stdout.Bytes(), err
+	if err != nil {
+		return stdout.Bytes(), &ToolError{Err: err, Detail: stderr.String()}
+	}
+	return stdout.Bytes(), nil
 }
+
+// ToolError keeps bounded stderr for internal classification. Its public error
+// deliberately does not echo subprocess output; callers publish safe summaries.
+type ToolError struct {
+	Err    error
+	Detail string
+}
+
+func (e *ToolError) Error() string { return e.Err.Error() }
+func (e *ToolError) Unwrap() error { return e.Err }
 
 // ExitedWith recognizes process exit statuses through wrapped errors.
 func ExitedWith(err error, code int) bool {
