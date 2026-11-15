@@ -12,7 +12,7 @@ depends_on:
   - No runtime dependencies (single static binary)
   - Docker (optional, only for testing rules that inspect Docker)
 created: 2026-11-13
-updated: 2026-11-14
+updated: 2026-11-15
 ---
 
 # EnvDoctor — Implementation Plan
@@ -24,42 +24,46 @@ updated: 2026-11-14
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`; M3 is **Not started**. The
-[M3 requirements](phases/M3.md) clarify this plan's next phase and its acceptance gates.
-Resolve the listed ADR decisions before dependent implementation. The
-[development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
-This preparation changes documentation only; it does not establish any M3 behavior or release.
+M2 is complete and merged into `main`. M3 is **implemented and locally verified on
+`feat/m3-implementation`; three-OS feature-branch CI pending**. [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
+was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
+and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
+The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
 
 ```yaml
 project: EnvDoctor
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1/M2 collection and six rules work; M3-M6 remain
+functional: partial            # M1-M3 collection and twelve rules work; M3 CI and M4-M6 remain
 
 implemented:
-  - cobra CLI with diagnose and version, --json, --component, --rule, --verbose, --port, --fixture-dir
+  - cobra CLI with diagnose, version, offline explain and rules --json
+  - diagnose flags --json, --component, --rule, --verbose, --port, --fixture-dir, --probe-network, --package-manager
   - collector interface, registry and parallel runner with a 2 s per-collector deadline
   - platform collector (OS, version, architecture, elevation) on windows, linux and darwin
   - shell collector (name and path where the shell exposes it)
   - PATH collector with existence, directory, position and duplicate flags
   - runtime metadata discovery for Python and Node, including selected environment targets
-  - requested TCP port ownership via OS facilities, Git config and local-default Docker probes
-  - pure rules ENV001-ENV006 with manual suggestions and actionable verification commands
-  - home-path redaction including quoted paths and embedded collector errors
+  - requested TCP port ownership via OS facilities, effective Git config/origins and local-default Docker probes
+  - locally inspected Docker context metadata, advertised API bounds and explicit override evidence
+  - explicit project requirements for supported build tools and OpenSSL development files
+  - package-manager declaration/runner/lockfile metadata and canonical Python environment evidence
+  - redacted proxy configuration and bounded opt-in DNS/TCP reachability
+  - pure rules ENV001-ENV012 with manual suggestions and actionable verification commands
+  - one builtin rule registry for findings, explain, rules JSON and generated documentation
+  - home-path and credential-URL redaction including embedded collector errors
   - text report and a versioned JSON document
   - documented exit codes 0/1/2/3/4
-  - JSON schemas for the snapshot and diagnose documents, enforced by a test
-  - 54 golden fixtures covering six rules, three OS snapshots and positive/negative/edge cases
+  - compatible snapshot/report schema v1 additions and separate project/registry v1 schemas
+  - 172 golden fixtures including the unchanged 54 M2 cases and 118 additional cases
   - built CLI integration tests for the golden cases and JSON/exit-code contracts
-  - bounded offline diagnosis that preserves degraded collector errors
+  - bounded offline diagnosis that preserves degraded collector errors and rejects live-evidence flags
+  - reproducible rule-page generation and a CI documentation drift check
   - goreleaser configuration verified with a local snapshot build of six targets
 
 not_implemented:
-  - diagnostic rules ENV007-ENV018
-  - full Docker context/version inspector (M2 has only the local-default probe for ENV006)
-  - dependency collector
-  - explain/rules commands and generated rule documentation
+  - diagnostic rules ENV013-ENV018
   - bubble tea output
   - diagnostic bundles
   - fixes and undo
@@ -71,6 +75,7 @@ source_of_truth:
   architecture: docs/ARCHITECTURE.md
   decisions: docs/adr/
   rule_fixtures: tests/golden/
+  rule_metadata: internal/diagnostic/registry.go
   status: README.md#roadmap
 
 forbidden_claims:
@@ -208,8 +213,13 @@ flowchart TD
 `envdoctor diagnose` → detect platform → run enabled collectors (parallel, each with a timeout) → assemble
 `Snapshot` → run rules that declare compatible components → sort findings by severity → render.
 
-A collector that times out or errors produces a **degraded** snapshot entry, not a crash. A missing
-component disables the rules that need it and prints one line explaining why.
+A collector that times out or errors produces a **degraded** snapshot entry, not a crash. Ordinary errors
+discard that collector's facts; explicitly typed partial evidence can be retained with `Part.Errors`.
+Failed prerequisites disable dependent rules and print a notice. M3 runs nine collectors with a two-second
+deadline. Proxy DNS/TCP work requires `--probe-network` and has a one-second total deadline within it.
+
+The builtin registry owns the twelve pure evaluators and their public metadata. Offline `explain`,
+`rules --json` and generated rule pages use the same registry without running collectors.
 
 ---
 
@@ -261,17 +271,18 @@ There is no database. The two persisted artefacts are the snapshot and the repor
 
 **Severity:** `info`, `warning`, `error`, `critical`. Exit code derives from the highest severity present.
 
-The snapshot above illustrates planned model fields. In M2, runtime `expected`/`missing`, requested TCP
-ports and Docker `installed` are also recorded. Docker `context` is `local-default`, not the user's chosen
-context. The finding above illustrates a future automatic fix: M2 suggestions are manual, have no commands,
-and do not probe TCP port 2375. See ADR 0004 and the committed schemas for the implemented contract.
+The examples above include planned model/fix fields; committed schemas define the implemented contract.
+M3 adds optional Docker context/API/state, dependency/package-manager, effective Git-origin, canonical
+Python-environment and proxy evidence to snapshot v1. Selected Docker context metadata is distinct from
+the `local-default` probe target. Actual findings contain manual suggestions and do not apply fixes or
+probe TCP port 2375. See ADRs 0004/0005 and the committed schemas for field and compatibility details.
 
 ---
 
 ## 8. Command surface and exit codes
 
 ```
-envdoctor diagnose [--json] [--component <name>] [--rule <id>] [--verbose] [--port <ports>] [--fixture-dir <dir>]
+envdoctor diagnose [--json] [--component <name>] [--rule <id>] [--verbose] [--port <ports>] [--fixture-dir <dir>] [--probe-network] [--package-manager <name>[@<version>]]
 envdoctor explain <rule-id>
 envdoctor bundle [--output <file>] [--include-logs]
 envdoctor fix [--rule <id>] [--dry-run] [--yes]
@@ -279,8 +290,9 @@ envdoctor rules [--json]
 envdoctor version
 ```
 
-Implemented as of M2: `diagnose` (with all six flags) and `version`. The other commands are planned; see
-section 0 for the authoritative list.
+Implemented as of M3: `diagnose`, `version`, offline `explain` and `rules`/`rules --json`.
+`bundle` and `fix` remain planned; see section 0 for the authoritative list. Unknown rule IDs and invalid
+metadata arguments exit 4; output failures exit 3.
 
 | Exit code | Meaning |
 |---|---|
@@ -293,11 +305,23 @@ section 0 for the authoritative list.
 `--json` writes exactly one JSON document to stdout and nothing else. All diagnostics and progress go to
 stderr. This is a contract: scripts depend on it.
 
-`--port` accepts repeated flags and comma-separated ports 1–65535. Network inspection is skipped without
-requested ports. `--fixture-dir` reads one version-1 `snapshot.json` up to 8 MiB, invokes no collectors,
+`--port` accepts repeated flags and comma-separated ports 1–65535. TCP listener inspection is skipped
+without requested ports. Proxy configuration is collected without network work; `--probe-network` permits
+at most three configured endpoints, one DNS lookup/one TCP dial each and a one-second total deadline.
+`--package-manager <name>[@<version>]` explicitly selects npm/pnpm/yarn/bun runner evidence.
+Both new live-evidence flags are incompatible with `--fixture-dir`.
+
+`--fixture-dir` reads one version-1 `snapshot.json` up to 8 MiB, invokes no collectors,
 and rejects unknown fields, trailing documents, unsupported versions and missing capture timestamps.
 Captured collector errors still skip their dependent rules and make the run exit 3. Filters narrow findings,
 not collection. JSON includes effective Git identity; review reports before sharing them.
+
+`envdoctor.requirements.json` in the working directory supplies strictly decoded version-1 project
+requirements (at most 1 MiB and 32 entries) and optional explicit `gitAutocrlf` policy. Initial checks cover
+`cmake`, `make`, `gcc`, `pkg-config` on absolute PATH and OpenSSL development files at a declared prefix.
+`package.json.packageManager` needs an exact numeric version; installed npm alone never selects a runner.
+See [project-v1.schema.json](schema/project-v1.schema.json), [rules-v1.schema.json](schema/rules-v1.schema.json)
+and ADR 0005 for precise evidence and unsupported cases.
 
 ---
 
@@ -311,11 +335,11 @@ Rule ids are stable and never reused. One markdown page per rule in `docs/rules/
 | ENV002 | node | error | Multiple Node installations, or version manager shim pointing at a missing version |
 | ENV003 | path | warning | PATH entry that does not exist |
 | ENV004 | path | warning | PATH shadowing: a different binary earlier in PATH than the expected one |
-| ENV005 | network | error | Port already in use by another process |
+| ENV005 | network | error | Requested TCP port already in use by a listening process |
 | ENV006 | docker | error | Docker CLI present but daemon unreachable |
 | ENV007 | docker | warning | Known client/daemon API incompatibility under a documented compatibility policy |
-| ENV008 | deps | error | Missing system library or build tool required by a detected project |
-| ENV009 | node | warning | Lockfile/package-manager mismatch (e.g. `pnpm-lock.yaml` with npm in use) |
+| ENV008 | deps | error | Missing supported tool or OpenSSL files explicitly required at an inspected project location |
+| ENV009 | node | warning | Observed lockfiles disagree with a declared/selected package manager, or lockfile families conflict |
 | ENV010 | git | warning | Missing effective identity, or `core.autocrlf` conflicting with explicit project policy |
 | ENV011 | python | warning | Active virtualenv does not match the interpreter on PATH |
 | ENV012 | network | info | Configured proxy unreachable during an explicit opt-in bounded probe |
@@ -326,10 +350,14 @@ Rule ids are stable and never reused. One markdown page per rule in `docs/rules/
 | ENV017 | docker | warning | Docker context points at a remote host |
 | ENV018 | git | info | Repository-local config differs from global identity |
 
-ENV001–ENV006 are implemented. ENV007–ENV018 remain planned. ENV001 requires known differing versions
+ENV001–ENV012 are implemented; ENV013–ENV018 remain planned. ENV001 requires known differing versions
 for active Python aliases. ENV002 reports multiple Node candidates or a missing selected target. ENV004
 uses an explicitly selected environment; ENV005 only reports requested ports; ENV006 probes the default
-local engine. Runtime versions are metadata-based and may be unknown. The per-rule pages record caveats.
+local engine. Runtime versions and unresolved shims may be unknown. ENV007 requires known API bounds or
+override evidence; different product versions alone are inconclusive. ENV008 uses explicit supported
+project requirements, ENV009 explicit manager/lockfile evidence, ENV010 checked Git identity or explicit
+line-ending policy, ENV011 known canonical invocation environments and ENV012 an opt-in conclusive TCP
+result. The generated per-rule pages record prerequisites, verification and platform limits.
 
 **Rule contract.** A rule receives the snapshot and returns zero or more findings. It must:
 
@@ -445,7 +473,8 @@ engine and a built CLI. Native Windows and Linux race suites passed. A real Wind
 identified by port, process name and PID. GoReleaser built Windows/Linux/macOS on amd64/arm64; the linter
 and vulnerability scanner passed. Main CI
 [43554155740](https://github.com/shellghostt/envdoctor/actions/runs/43554155740) passed for the merged baseline.
-Cross-compilation is not evidence of native execution; no M3 behavior is claimed.
+Cross-compilation is not evidence of native execution. These are merged M2 results;
+M3 evidence is recorded below.
 
 Demo: build the CLI and run `diagnose --fixture-dir tests/demo` (synthetic, six findings, exit 2).
 See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, measurements and limitations.
@@ -454,17 +483,26 @@ See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, mea
 
 **Deliverable:** rules ENV007–ENV012, Docker and dependency inspectors, `explain` and `rules --json`.
 
-Status: **Not started**. Follow [M3 requirements](phases/M3.md), including evidence and network boundaries.
+Status: **Implemented and locally verified on `feat/m3-implementation`; three-OS CI pending.**
+Follow [M3 requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md) and
+[M3 validation](testing/m3-validation.md) for evidence, tests and limits.
 
 **Acceptance criteria**
 
-- [ ] Docker daemon down is distinguished from Docker not installed
-- [ ] Missing system library reported only when a project requiring it is detected
-- [ ] Package manager mismatch detects lockfile vs runner
-- [ ] `envdoctor explain ENV006` prints the full rule documentation
-- [ ] Rule pages exist for every rule and are generated from the same source as `rules --json`
-- [ ] Normal diagnosis and fixtures initiate no remote probes; proxy reachability requires explicit opt-in
-- [ ] Unknown versions, ambiguous runners, denied/missing evidence and redaction have three-OS fixtures
+- [x] Docker daemon down is distinguished from Docker not installed
+- [x] Missing system library reported only when a project requiring it is detected
+- [x] Package manager mismatch detects lockfile vs runner
+- [x] `envdoctor explain ENV006` prints the full rule documentation
+- [x] Rule pages exist for every rule and are generated from the same source as `rules --json`
+- [x] Normal diagnosis and fixtures initiate no remote probes; proxy reachability requires explicit opt-in
+- [x] Unknown versions, ambiguous runners, denied/missing evidence and redaction have three-OS fixtures
+- [x] `make test`, native Windows/Linux race, `make lint`, build, docs drift and vulnerability checks pass
+- [ ] The final M3 feature branch passes the Windows/Ubuntu/macOS CI matrix
+
+All 172 fixtures pass through the engine and built CLI. Nine collectors complete real Windows inspection
+without degradation; local proxy tests send zero application bytes and release resources. Both macOS
+architectures cross-compile, but native M3 macOS execution awaits CI. The validation record names the
+tests and records local measurements without claiming M6 clean-host/release coverage.
 
 ### M4 — Reports and diagnostic bundles
 
@@ -548,10 +586,10 @@ Status: **Not started**. Follow [M3 requirements](phases/M3.md), including evide
   merged without both.
 - **CLI integration tests** run the built binary against a fixture directory (`--fixture-dir`), asserting
   stdout, stderr and exit code.
-- **Redaction tests** attempt to leak a fake token through every collector and assert it never appears in a
-  bundle.
+- **Redaction tests** attempt to leak synthetic credentials through snapshots, findings and notices.
+  Bundle sharing/redaction remains a separate M4 acceptance gate.
 - **Cross-platform:** the same suite runs on `windows-latest`, `ubuntu-latest`, `macos-latest`. A rule that
-  only passes on one OS is marked `platform: [windows]` and tested only there.
+  has a platform exclusion records it in registry caveats and explicit inconclusive fixtures.
 
 **Performance targets:** full diagnose < 3 s warm / < 8 s cold; binary < 25 MB; memory < 100 MB; every
 collector < 2 s or it is disabled with a degraded notice.
@@ -562,9 +600,9 @@ collector < 2 s or it is disabled with a degraded notice.
 
 No telemetry, by design. Diagnostics only:
 
-- `--verbose` prints collector timings and the snapshot path.
-- `envdoctor diagnose --debug-snapshot <file>` writes the raw snapshot for bug reports.
-- Bundles include tool version, OS build and collector timings.
+- `--verbose` prints collector timings; errors are redacted.
+- Planned `envdoctor diagnose --debug-snapshot <file>` will write a snapshot for bug reports.
+- Planned bundles will include tool version, OS build and collector timings.
 
 There is no `envdoctor.io` endpoint. There is no analytics. A PR that adds phone-home is rejected.
 
@@ -613,9 +651,11 @@ Explicitly out of scope: malware detection, host compromise assessment.
 
 ## 19. Anti-hallucination contract
 
-**Facts:** M1 and M2 collection, six pure diagnostic rules, plain-text/JSON reporting and bounded offline
-diagnosis are implemented and tested. Bundles, automatic fixes, rules ENV007–ENV018 and signed releases
-remain future work. Runtime discovery does not execute PATH candidates and unknown metadata stays unknown.
+**Facts:** M1–M3 collection, twelve pure diagnostic rules, plain-text/JSON reporting, offline metadata
+commands and bounded offline diagnosis are implemented and locally tested. Native Windows/Linux race
+suites pass; M3 three-OS feature-branch CI remains pending. Bundles, automatic fixes, rules ENV013–ENV018
+and signed releases remain future work. Runtime discovery does not execute PATH candidates and unknown
+metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 
 **Rules:**
 

@@ -1,12 +1,14 @@
 # Development tools and memory validation
 
-Audit date: 2026-11-14. These are development aids, not product features or substitutes for tests.
+Initial audit: 2026-11-14; M3 verification refresh: 2026-11-15.
+These are development aids, not product features or substitutes for tests.
 Read [PLAN.md](PLAN.md), the [M3 requirements](phases/M3.md) and accepted [ADRs](adr/) first.
 
 ## CodeGraph
 
-CodeGraph 1.6.2 is installed and this repository's existing index was refreshed from merged M2.
-The previous index was still at M1. Check freshness when switching branches or pulling changes:
+CodeGraph 1.6.2 is installed. The existing index was refreshed from merged M2 during the initial audit
+and from final M3 source on 2026-11-15: 75 files, 819 nodes and 1,804 edges; status reported up to date.
+Check freshness when switching branches or pulling changes:
 
 ```bash
 codegraph status
@@ -35,6 +37,10 @@ active handles as applicable, and latency/drop metrics. Go benchmarks can collec
 heap snapshots/inspector; Python supports `tracemalloc`. Choose the native tool for the process.
 Record versions, duration, inputs, commands and limitations in a validation report.
 Profile only when the change or suspected fault justifies it; a documentation edit needs link/diff checks.
+
+[M3 validation](testing/m3-validation.md) records the actual proxy lifecycle/heap benchmark, retained
+profile, goroutine counts and local diagnosis timings. Those are bounded Go workload measurements;
+MemGuard/MAT were not treated as Go runtime gates or evidence of universal leak freedom.
 
 ## Memory Analyzer
 

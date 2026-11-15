@@ -9,8 +9,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- [M3 requirements](docs/phases/M3.md) with phase boundaries, failure cases, ADR prerequisites and
-  acceptance gates, plus a [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is not implemented.
+- M3 rules ENV007–ENV012: known Docker API incompatibility, explicitly required dependency absence,
+  package-manager/lockfile disagreements, effective Git identity/explicit autocrlf policy,
+  canonical virtualenv/interpreter mismatch and opt-in proxy refusal/no-route evidence.
+- Local Docker context/API metadata, strict version-1 `envdoctor.requirements.json`, supported
+  tool/OpenSSL metadata checks and explicit `--package-manager` runner evidence.
+- Redacted proxy configuration with bounded `--probe-network` DNS/TCP checks, offline by default.
+- Offline `explain`, `rules --json`, a shared rule registry, generated pages for all twelve rules,
+  `make docs`/`make check-docs` and CI documentation drift enforcement.
+- 118 additional golden cases, preserving the original 54 for 172 total; collector, schema, purity,
+  CLI, cancellation and socket lifecycle regressions.
+- Accepted [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md),
+  [M3 acceptance requirements](docs/phases/M3.md), [validation evidence](docs/testing/m3-validation.md)
+  and [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is locally verified; branch CI is pending.
 
 - M2 runtime, requested TCP-port and Git collectors, plus the local Docker probe needed by ENV006.
 - Rules ENV001–ENV006 with deterministic evidence, manual suggestions and rule documentation.
@@ -22,6 +33,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Optional M3 snapshot evidence extends schema v1 compatibly; project and rule-registry JSON have
+  separate version-1 schemas. Explicit typed partial collector evidence retains degraded notices
+  and disables dependent rules.
+- `make build` disables CGO only for static builds and uses `.exe` on Windows; race tests retain CGO.
+- Home/credential-URL redaction covers new evidence, paths within URLs, and collector/CLI errors.
 - `golang.org/x/sys` updated to v0.48.0 to remove the vulnerable v0.30.0 dependency.
 - Feature and fix branches trigger the three-OS CI matrix. Snapshot schema permits absent platform facts
   after a failed collector; offline errors retain degraded notices and exit code 3.
@@ -36,6 +52,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Fixed
 
+- Bounded subprocess output no longer exposes `bytes.Buffer.ReadFrom`, which could bypass the
+  writer's limit for stdout/stderr.
+- Protected WindowsApps/MSIX paths and application aliases remain unresolved metadata; new
+  unknown-resolution snapshots do not cause speculative M2 runtime conflicts.
+- Git autocrlf boolean aliases use portable typed config queries; `input` is handled directly.
 - M1 runner deadline now bounds a collector that ignores cancellation.
 - Home redaction includes quoted PATH entries and paths embedded in collector/timing errors.
 - Broken symlinks do not shadow usable runtimes; Python venvs stay distinct from their system symlink
@@ -49,7 +70,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned
 
-- M3: rules ENV007–ENV012, full Docker/dependency inspection and the `explain` command.
+- M4 reports and bundles; later rules ENV013–ENV018, confirmed fixes and signed releases.
 
 ## [0.1.0] - 2026-11-13
 
