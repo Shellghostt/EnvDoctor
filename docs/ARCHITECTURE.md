@@ -1,6 +1,6 @@
 # EnvDoctor Architecture
 
-**Status: M2 complete, unreleased.** Seven collectors feed six pure rules and a plain-text/JSON report.
+**Status: M2 complete and merged into main.** Seven collectors feed six pure rules and a plain-text/JSON report.
 Dependency inspection, broader Docker rules, bundles, automatic fixes and interactive output remain planned.
 The authoritative specification is [PLAN.md](PLAN.md); [ADR 0004](adr/0004-m2-collectors-and-rules.md)
 records the implemented evidence and inspection boundaries.
@@ -64,3 +64,8 @@ bundle feature must define its own sharing policy. No current command applies a 
 
 See [PLAN.md](PLAN.md) section 4 (non-goals). If a component is not on that diagram, it is not part of the
 design.
+
+## M3 preparation
+
+M3 is **Not started**. Read [phase requirements](phases/M3.md) for planned contracts,
+ADR decisions and acceptance gates, and [development tools](DEVELOPMENT-TOOLS.md) for actual coverage.

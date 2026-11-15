@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
-**Status: M2 complete (unreleased).** EnvDoctor collects platform, shell, PATH, Python/Node runtime,
+**Status: M2 complete and merged into main.** EnvDoctor collects platform, shell, PATH, Python/Node runtime,
 requested TCP-port, Git and local Docker facts. Six rules explain conflicts and suggest manual next steps.
 Reports are plain text or versioned JSON. Diagnosis never applies fixes or executes interpreters found on PATH.
 
@@ -25,7 +25,7 @@ explains the cause instead of dumping raw output.
 | Identify broken PATH entries | M2 | **Done** (raw entries preserved after home redaction) |
 | Detect requested TCP port conflicts | M2 | **Done**, owner PID/name where permitted |
 | Detect unreachable local Docker engine | M2 | **Done** (ENV006) |
-| Inspect Docker contexts and version skew | M3 | Not started |
+| Inspect Docker contexts and API compatibility | M3 | Not started |
 | Identify missing system dependencies | M3 | Not started |
 | Detect incompatible package managers | M3 | Not started |
 | Collect effective Git identity and autocrlf | M2 | **Done**; Git diagnostic rules are M3 |
@@ -178,10 +178,13 @@ goreleaser build --snapshot --clean
 
 ## Roadmap
 
+M3 is **Not started**. Read the [M3 requirements and acceptance gates](docs/phases/M3.md)
+before implementation and the [development-tool audit](docs/DEVELOPMENT-TOOLS.md) before debugging.
+
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
-| M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (unreleased)** |
+| M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (merged)** |
 | M3 | Rules ENV007–ENV012, Docker and dependency inspectors, `explain` | Not started |
 | M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started |
 | M5 | Safe, confirmed automated remediation | Not started |

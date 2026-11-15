@@ -24,6 +24,12 @@ updated: 2026-11-14
 
 ## 0. Machine context
 
+M2 is complete and merged into `main`; M3 is **Not started**. The
+[M3 requirements](phases/M3.md) clarify this plan's next phase and its acceptance gates.
+Resolve the listed ADR decisions before dependent implementation. The
+[development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
+This preparation changes documentation only; it does not establish any M3 behavior or release.
+
 ```yaml
 project: EnvDoctor
 status: mvp
@@ -307,12 +313,12 @@ Rule ids are stable and never reused. One markdown page per rule in `docs/rules/
 | ENV004 | path | warning | PATH shadowing: a different binary earlier in PATH than the expected one |
 | ENV005 | network | error | Port already in use by another process |
 | ENV006 | docker | error | Docker CLI present but daemon unreachable |
-| ENV007 | docker | warning | Docker CLI and daemon version skew beyond a documented range |
+| ENV007 | docker | warning | Known client/daemon API incompatibility under a documented compatibility policy |
 | ENV008 | deps | error | Missing system library or build tool required by a detected project |
 | ENV009 | node | warning | Lockfile/package-manager mismatch (e.g. `pnpm-lock.yaml` with npm in use) |
-| ENV010 | git | warning | Missing `user.name`/`user.email`, or `core.autocrlf` inconsistent with the platform |
+| ENV010 | git | warning | Missing effective identity, or `core.autocrlf` conflicting with explicit project policy |
 | ENV011 | python | warning | Active virtualenv does not match the interpreter on PATH |
-| ENV012 | network | info | Proxy environment variables set but not reachable |
+| ENV012 | network | info | Configured proxy unreachable during an explicit opt-in bounded probe |
 | ENV013 | system | warning | Low disk space in the working drive |
 | ENV014 | deps | warning | Global tool installed but not on PATH |
 | ENV015 | node | info | Deprecated or end-of-life runtime version |
@@ -434,19 +440,21 @@ six targets. The CI workflow has a three-OS matrix and it has executed: the firs
 - [x] Golden fixtures exist for all six rules and run in CI on every platform
 - [x] No rule calls `os.Getenv` or executes a binary directly (enforced by a lint test)
 
-Status: complete on `feat/m2-implementation`, unreleased. All 54 golden cases passed through both the
+Status: complete and merged into `main`. All 54 golden cases passed through both the
 engine and a built CLI. Native Windows and Linux race suites passed. A real Windows listening socket was
 identified by port, process name and PID. GoReleaser built Windows/Linux/macOS on amd64/arm64; the linter
-and vulnerability scanner passed. The existing three-OS CI matrix executes the same full suite on feature
-branches. The new M2 branch has not been pushed to GitHub during this session, so an actual updated macOS
-run and native Windows race run remain CI validation. Cross-compilation is not evidence of macOS execution.
+and vulnerability scanner passed. Main CI
+[43554155740](https://github.com/shellghostt/envdoctor/actions/runs/43554155740) passed for the merged baseline.
+Cross-compilation is not evidence of native execution; no M3 behavior is claimed.
 
 Demo: build the CLI and run `diagnose --fixture-dir tests/demo` (synthetic, six findings, exit 2).
 See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, measurements and limitations.
 
 ### M3 — Rule engine and dependency rules
 
-**Deliverable:** rules ENV007–ENV012, Docker and dependency inspectors, `explain` command.
+**Deliverable:** rules ENV007–ENV012, Docker and dependency inspectors, `explain` and `rules --json`.
+
+Status: **Not started**. Follow [M3 requirements](phases/M3.md), including evidence and network boundaries.
 
 **Acceptance criteria**
 
@@ -455,6 +463,8 @@ See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, mea
 - [ ] Package manager mismatch detects lockfile vs runner
 - [ ] `envdoctor explain ENV006` prints the full rule documentation
 - [ ] Rule pages exist for every rule and are generated from the same source as `rules --json`
+- [ ] Normal diagnosis and fixtures initiate no remote probes; proxy reachability requires explicit opt-in
+- [ ] Unknown versions, ambiguous runners, denied/missing evidence and redaction have three-OS fixtures
 
 ### M4 — Reports and diagnostic bundles
 
@@ -519,8 +529,9 @@ See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, mea
 | ENV-019 | Terminal renderer with severity grouping | ENV-006 | M2 |
 | ENV-020 | Full Docker context/version inspector (local-default probe implemented for ENV006 in M2) | ENV-003 | M3 |
 | ENV-021 | Dependency collector (libs, build tools) | ENV-003 | M3 |
-| ENV-022 | Rules ENV007–ENV012 | ENV-020, ENV-021 | M3 |
-| ENV-023 | `explain` command and docs generation | ENV-013 | M3 |
+| ENV-023A | Opt-in bounded proxy evidence collector and offline-default regression checks | ENV-005 | M3 |
+| ENV-022 | Rules ENV007–ENV012 | ENV-020, ENV-021, ENV-023A | M3 |
+| ENV-023 | Rule registry, `explain`, `rules --json` and docs generation | ENV-022 | M3 |
 | ENV-024 | Bubble Tea renderer with plain fallback | ENV-019 | M4 |
 | ENV-025 | Bundle writer with redaction tests | ENV-005 | M4 |
 | ENV-026 | `diagnose --from-bundle` | ENV-025 | M4 |

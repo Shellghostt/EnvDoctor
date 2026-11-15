@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- [M3 requirements](docs/phases/M3.md) with phase boundaries, failure cases, ADR prerequisites and
+  acceptance gates, plus a [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is not implemented.
+
 - M2 runtime, requested TCP-port and Git collectors, plus the local Docker probe needed by ENV006.
 - Rules ENV001–ENV006 with deterministic evidence, manual suggestions and rule documentation.
 - 54 three-OS golden cases and built-CLI checks for JSON, findings and exit codes.
