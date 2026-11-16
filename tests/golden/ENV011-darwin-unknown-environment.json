@@ -1,0 +1,30 @@
+{
+  "ruleId": "ENV011",
+  "description": "Synthetic darwin unknown-environment; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "darwin",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "pythonEnvironment": {
+      "root": "/workspace/app/.venv",
+      "metadataKnown": false
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "version": "3.12.0",
+        "path": "/usr/bin/python3",
+        "manager": "system",
+        "active": true,
+        "resolvedPath": "/usr/bin/python3",
+        "resolution": "known"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

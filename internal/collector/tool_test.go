@@ -40,8 +40,8 @@ func TestDockerCollectionDistinguishesAbsenceOutageAndBadMetadata(t *testing.T) 
 			}}
 			part, err := c.Collect(context.Background())
 			if tc.fail {
-				if err == nil {
-					t.Fatal("invalid metadata accepted")
+				if err == nil && len(part.Errors) == 0 {
+					t.Fatal("invalid metadata accepted without degradation")
 				}
 				return
 			}

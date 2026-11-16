@@ -1,8 +1,7 @@
 // Package config holds the resolved options for one EnvDoctor run.
 //
-// There is no configuration file and no environment variable that changes
-// behaviour. Options come from command-line flags only, which keeps a shared
-// team rule set reviewable: it is the flags in a script, not a hidden file.
+// Options come from command-line flags only. Project manifests and environment
+// variables supply evidence; they never enable network probes or apply fixes.
 package config
 
 import (
@@ -30,18 +29,31 @@ var (
 
 // Options is the result of parsing the diagnose flags.
 type Options struct {
-	JSON       bool
-	Verbose    bool
-	Component  string
-	Rule       string
-	Ports      []int
-	FixtureDir string
+	JSON           bool
+	Verbose        bool
+	Component      string
+	Rule           string
+	Ports          []int
+	FixtureDir     string
+	ProbeNetwork   bool
+	PackageManager string
 }
 
 // Validate rejects values that cannot possibly select anything. It does not
 // check whether the rule exists: that needs the rule registry, which the
 // caller owns.
 func (o Options) Validate() error {
+	if o.ProbeNetwork && o.FixtureDir != "" {
+		return fmt.Errorf("--probe-network cannot be used with --fixture-dir")
+	}
+	if o.PackageManager != "" {
+		if _, _, err := ParsePackageManager(o.PackageManager); err != nil {
+			return fmt.Errorf("--package-manager: %w", err)
+		}
+		if o.FixtureDir != "" {
+			return fmt.Errorf("--package-manager cannot be used with --fixture-dir; runner evidence belongs in the snapshot")
+		}
+	}
 	for _, p := range o.Ports {
 		if p < 1 || p > 65535 {
 			return fmt.Errorf("--port must be between 1 and 65535")

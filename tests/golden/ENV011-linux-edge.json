@@ -1,0 +1,31 @@
+{
+  "ruleId": "ENV011",
+  "description": "Synthetic linux edge; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "pythonEnvironment": {
+      "root": "/workspace/app/.venv",
+      "canonicalRoot": "/workspace/app/.venv",
+      "metadataKnown": true
+    },
+    "runtimes": [
+      {
+        "name": "python",
+        "version": "3.12.0",
+        "path": "/workspace/app/.pyenv/shims/python",
+        "manager": "pyenv",
+        "active": true,
+        "resolvedPath": "/usr/bin/python3",
+        "resolution": "unknown"
+      }
+    ]
+  },
+  "expectedFindings": []
+}

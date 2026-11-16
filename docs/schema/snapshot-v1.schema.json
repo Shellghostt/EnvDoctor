@@ -137,6 +137,19 @@
           },
           "missing": {
             "type": "boolean"
+          },
+          "resolvedPath": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "known",
+              "unknown"
+            ]
+          },
+          "environmentRoot": {
+            "type": "string"
           }
         }
       }
@@ -197,6 +210,41 @@
         },
         "installed": {
           "type": "boolean"
+        },
+        "clientApi": {
+          "type": "string"
+        },
+        "clientMinApi": {
+          "type": "string"
+        },
+        "clientDefaultApi": {
+          "type": "string"
+        },
+        "serverApi": {
+          "type": "string"
+        },
+        "serverMinApi": {
+          "type": "string"
+        },
+        "apiOverride": {
+          "type": "string"
+        },
+        "selectedContext": {
+          "type": "string"
+        },
+        "selectedHost": {
+          "type": "string"
+        },
+        "probeStatus": {
+          "type": "string",
+          "enum": [
+            "absent",
+            "available",
+            "unavailable",
+            "denied",
+            "unsupported",
+            "unknown"
+          ]
         }
       }
     },
@@ -226,6 +274,18 @@
           ]
         },
         "autocrlf": {
+          "type": "string"
+        },
+        "identityChecked": {
+          "type": "boolean"
+        },
+        "userNameOrigin": {
+          "type": "string"
+        },
+        "userEmailOrigin": {
+          "type": "string"
+        },
+        "autocrlfOrigin": {
           "type": "string"
         }
       }
@@ -258,6 +318,174 @@
         "minimum": 1,
         "maximum": 65535
       }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectRoot"
+      ],
+      "properties": {
+        "projectRoot": {
+          "type": "string"
+        },
+        "requirementsFile": {
+          "type": "string"
+        },
+        "gitAutocrlf": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false",
+            "input"
+          ]
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "name",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "missing",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        },
+        "package": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "manifest"
+          ],
+          "properties": {
+            "manifest": {
+              "type": "string"
+            },
+            "declared": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                }
+              }
+            },
+            "runner": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                }
+              }
+            },
+            "lockfiles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "pythonEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "metadataKnown"
+      ],
+      "properties": {
+        "root": {
+          "type": "string"
+        },
+        "canonicalRoot": {
+          "type": "string"
+        },
+        "metadataKnown": {
+          "type": "boolean"
+        }
+      }
+    },
+    "proxies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "variable",
+          "url",
+          "probe"
+        ],
+        "properties": {
+          "variable": {
+            "type": "string",
+            "enum": [
+              "HTTP_PROXY",
+              "HTTPS_PROXY",
+              "ALL_PROXY"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "probe": {
+            "type": "string",
+            "enum": [
+              "untested",
+              "reachable",
+              "unreachable",
+              "unknown",
+              "invalid"
+            ]
+          }
+        }
+      },
+      "maxItems": 3
+    },
+    "noProxyConfigured": {
+      "type": "boolean"
     }
   }
 }

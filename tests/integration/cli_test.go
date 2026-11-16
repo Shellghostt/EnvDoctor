@@ -46,8 +46,8 @@ func TestBuiltCLIWithAllGoldenFixtures(t *testing.T) {
 		t.Fatal(err)
 	}
 	fixtures, err := filepath.Glob(filepath.Join(root, "tests", "golden", "*.json"))
-	if err != nil || len(fixtures) != 54 {
-		t.Fatalf("expected 54 golden cases: %d %v", len(fixtures), err)
+	if err != nil || len(fixtures) < 108 {
+		t.Fatalf("expected the 54 M2 cases plus at least 54 M3 cases: %d %v", len(fixtures), err)
 	}
 	for _, path := range fixtures {
 		t.Run(filepath.Base(path), func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestBuiltCLIWithAllGoldenFixtures(t *testing.T) {
 			if len(fixture.ExpectedFindings) == 0 {
 				fixture.ExpectedFindings = nil
 			}
-			if document.ExitCode != code || document.Rules != 6 || !reflect.DeepEqual(document.Findings, fixture.ExpectedFindings) {
+			if document.ExitCode != code || document.Rules != 12 || !reflect.DeepEqual(document.Findings, fixture.ExpectedFindings) {
 				t.Fatalf("unexpected CLI report: %s", out.String())
 			}
 			var decoded any

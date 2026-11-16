@@ -9,6 +9,10 @@ Thanks for taking the time. This document is deliberately short and specific.
 2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - how the pieces fit together.
 3. [docs/adr/](docs/adr/) - decisions that have already been argued about. Do not relitigate them
    without a new ADR.
+4. [docs/phases/M3.md](docs/phases/M3.md) and [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md) -
+   implemented M3 evidence contracts and verified three-OS CI gate.
+5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
+   and profiling appropriate to this repository's runtime.
 
 ## Ground rules
 
@@ -27,10 +31,31 @@ make test        # unit tests
 make lint        # formatting and static analysis
 ```
 
-`go test -count=1 -timeout=120s ./...` also builds the CLI and runs all 54 golden cases through it.
+Pin `GOTOOLCHAIN=go1.26.11` for the recorded gates. `go test -count=1 -timeout=120s ./...` also builds
+the CLI and runs all 172 golden cases through it, including the unchanged 54 M2 cases.
 Each new rule needs positive, negative and edge snapshots for Windows, Linux and macOS. Expected
 findings are reviewed evidence, not output regenerated from the implementation. See
-[the validation record](docs/testing/m1-m2-validation.md) for Windows and Linux race commands.
+[M3 validation](docs/testing/m3-validation.md) for native Windows and Linux race commands and limits.
+Windows race tests need a 64-bit MinGW-w64-compatible GCC configured in Go's CC/CXX; ordinary static
+builds use `make build`, which disables CGO only for that target.
+
+## Rule metadata and documentation
+
+`internal/diagnostic/registry.go` owns each builtin rule's metadata and pure evaluator. Findings,
+`explain`, `rules --json` and generated `docs/rules/ENV*.md` pages share that registry.
+Update the registry, add reviewed fixtures, then run:
+
+```bash
+make docs
+make check-docs
+make test
+make race
+make lint
+```
+
+Do not edit generated rule pages directly. Tests and CI reject drift. Optional evidence additions must
+preserve snapshot-v1 compatibility; project and registry contracts have their own committed schemas.
+Unknown or failed evidence cannot become a speculative finding, and no metadata command runs collectors.
 
 ## Code navigation
 

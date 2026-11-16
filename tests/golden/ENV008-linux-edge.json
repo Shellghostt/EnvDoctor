@@ -1,0 +1,26 @@
+{
+  "ruleId": "ENV008",
+  "description": "Synthetic linux edge; authored evidence expectations, no live capture",
+  "snapshot": {
+    "schemaVersion": 1,
+    "collectedAt": "2026-11-13T10:00:00Z",
+    "platform": {
+      "os": "linux",
+      "version": "test",
+      "arch": "amd64",
+      "elevated": false
+    },
+    "dependencies": {
+      "projectRoot": "/workspace/app",
+      "requirementsFile": "/workspace/app/envdoctor.requirements.json",
+      "requirements": [
+        {
+          "kind": "tool",
+          "name": "cmake",
+          "status": "unknown"
+        }
+      ]
+    }
+  },
+  "expectedFindings": []
+}
