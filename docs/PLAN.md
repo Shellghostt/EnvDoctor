@@ -12,7 +12,7 @@ depends_on:
   - No runtime dependencies (single static binary)
   - Docker (optional, only for testing rules that inspect Docker)
 created: 2026-11-13
-updated: 2026-11-15
+updated: 2026-11-17
 ---
 
 # EnvDoctor — Implementation Plan
@@ -24,12 +24,16 @@ updated: 2026-11-15
 
 ## 0. Machine context
 
-M2 is complete and merged into `main`. M3 is **complete on `feat/m3-implementation`, including
-[three-OS CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978)**.
+M1–M3 are complete and merged into `main`. [M3 PR #3](https://github.com/Shellghostt/EnvDoctor/pull/3)
+merged at `6cf358138ecd3bedf086f22536a30562fb673e4e`; its
+[main CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43802280915) passed.
 [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
 was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
 and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
+M4 is **Not started**. [M4 requirements](phases/M4.md) and
+[proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) prepare report formats, bundle export/redaction
+and offline diagnosis; they do not claim new commands or acceptance results.
 
 ```yaml
 project: EnvDoctor
@@ -65,6 +69,7 @@ implemented:
 
 not_implemented:
   - diagnostic rules ENV013-ENV018
+  - markdown report export
   - bubble tea output
   - diagnostic bundles
   - fixes and undo
@@ -295,6 +300,10 @@ Implemented as of M3: `diagnose`, `version`, offline `explain` and `rules`/`rule
 `bundle` and `fix` remain planned; see section 0 for the authoritative list. Unknown rule IDs and invalid
 metadata arguments exit 4; output failures exit 3.
 
+M4 format/plain/bundle-input flags and bundle command semantics are proposed in
+[ADR 0006](adr/0006-m4-reports-and-bundles.md). They are not implemented. Bundle export must use a
+separate sharing policy; ordinary JSON continues to include effective Git identity.
+
 | Exit code | Meaning |
 |---|---|
 | 0 | No findings at or above `warning` |
@@ -484,7 +493,7 @@ See [testing/m1-m2-validation.md](testing/m1-m2-validation.md) for commands, mea
 
 **Deliverable:** rules ENV007–ENV012, Docker and dependency inspectors, `explain` and `rules --json`.
 
-Status: **Complete on `feat/m3-implementation`, including native Windows/Ubuntu/macOS CI.**
+Status: **Complete and merged into main**, including native Windows/Ubuntu/macOS CI.
 Follow [M3 requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md) and
 [M3 validation](testing/m3-validation.md) for evidence, tests and limits.
 
@@ -511,12 +520,20 @@ tests and records local measurements without claiming M6 clean-host/release cove
 
 **Deliverable:** polished terminal output (Bubble Tea when TTY), Markdown export, `bundle` command.
 
+Status: **Not started; documentation prepared.** Follow [M4 requirements](phases/M4.md) and resolve
+[proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) before dependent code. Bundle input/export has
+its own version/redaction/omission policy; copying the current report is not sufficient.
+
 **Acceptance criteria**
 
 - [ ] Non-TTY output is plain text, stable, and contains no ANSI codes
-- [ ] `envdoctor bundle` produces a zip under 2 MB containing report, redacted snapshot and tool versions
-- [ ] Bundle never contains environment variable values, tokens or usernames (test asserts this)
-- [ ] A bundle from another machine can be diagnosed offline with `envdoctor diagnose --from-bundle`
+- [ ] TTY/NO_COLOR/redirect/format and Markdown escaping cases preserve reports/exits and terminal cleanup
+- [ ] `envdoctor bundle` produces a versioned zip below 2,000,000 compressed bytes with independent entry/decompression limits
+- [ ] Allowlisted export removes synthetic raw environment values, tokens and identities from every member/error path
+- [ ] Removed evidence is explicitly omitted/inconclusive; saved report verdicts never override validated captured evidence
+- [ ] Cross-OS `diagnose --from-bundle` runs no collectors, commands or network and preserves capture/evaluator provenance
+- [ ] Corrupt/traversal/bomb/duplicate/version/oversize archives and atomic write failures are tested
+- [ ] M1–M3 golden/JSON/registry/probe regressions and native CI pass, with all M4 evidence recorded
 - [ ] One screenshot in the README, taken from a real run
 
 ### M5 — Safe remediation
@@ -573,8 +590,8 @@ tests and records local measurements without claiming M6 clean-host/release cove
 | ENV-023A | Opt-in bounded proxy evidence collector and offline-default regression checks | ENV-005 | M3 |
 | ENV-022 | Rules ENV007–ENV012 | ENV-020, ENV-021, ENV-023A | M3 |
 | ENV-023 | Rule registry, `explain`, `rules --json` and docs generation | ENV-022 | M3 |
-| ENV-024 | Bubble Tea renderer with plain fallback | ENV-019 | M4 |
-| ENV-025 | Bundle writer with redaction tests | ENV-005 | M4 |
+| ENV-024 | Bubble Tea/plain selection and escaped Markdown export | ENV-019 | M4 |
+| ENV-025 | Versioned bounded bundle writer/reader and allowlisted redaction | ENV-005, ENV-024 | M4 |
 | ENV-026 | `diagnose --from-bundle` | ENV-025 | M4 |
 | ENV-027 | Fix planner and dry run | ENV-022 | M5 |
 | ENV-028 | Fix apply, logging and undo | ENV-027 | M5 |
@@ -678,7 +695,7 @@ metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 | Rule | Pure function from snapshot to findings. Has a permanent id. |
 | Finding | One diagnosis: severity, evidence, cause, fix. |
 | Fix | A proposed remediation with explicit safety properties. |
-| Bundle | A zip of report, snapshot and logs, safe to share publicly. |
+| Bundle | Versioned export of redacted captured evidence/reports under a documented sharing policy. |
 | Degraded | A collector failed; its rules are skipped, not guessed. |
 
 ---
@@ -688,5 +705,7 @@ metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 1. Read sections 0, 3 and 9. Ten minutes.
 2. `make build && ./bin/envdoctor diagnose`; compare what it prints with section 0's `functional` field.
 3. Pick the next unchecked item in the current milestone. Rules come with fixtures or they do not come.
+   M4 requirements are in [phases/M4.md](phases/M4.md); ADR 0006 remains proposed. This preparation
+   authorizes documents only; implementation needs a later request and accepted export/CLI decisions.
 4. Run `make test` — golden fixtures will tell you immediately if a rule change broke another platform.
 5. Never add a fix without the safety model. If in doubt, print the command instead of running it.

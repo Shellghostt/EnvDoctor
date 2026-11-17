@@ -1,6 +1,6 @@
 # EnvDoctor Architecture
 
-**Status: M3 complete on the feature branch; three-OS CI passed.** Nine collectors feed
+**Status: M1–M3 complete and merged into main; three-OS CI passed.** Nine collectors feed
 twelve pure rules and a plain-text/JSON report. Offline metadata commands and generated pages share the
 same rule registry. Bundles, automatic fixes and interactive output remain planned.
 The authoritative specification is [PLAN.md](PLAN.md); [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
@@ -91,3 +91,11 @@ Read [phase requirements](phases/M3.md), [ADR 0005](adr/0005-m3-evidence-and-rul
 and Linux race suites passed locally; native Windows/Ubuntu/macOS tests and race suites also passed in
 [M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
 [Development tools](DEVELOPMENT-TOOLS.md) records navigation and runtime-profiling coverage.
+
+## M4 preparation
+
+[M4 requirements](phases/M4.md) and [proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) prepare
+Bubble Tea/plain/Markdown output and bounded versioned bundles. A separate export policy must remove
+identifying/free-text data and expose resulting evidence omissions. Offline bundle diagnosis evaluates
+captured facts under the current registry without inspecting the receiving machine. These paths are
+planned; existing plain/JSON/fixture contracts remain the implemented behavior.

@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
-**Status: M3 complete on `feat/m3-implementation`; Windows, Ubuntu and macOS CI passed.**
+**Status: M1–M3 complete and merged into main; Windows, Ubuntu and macOS CI passed.**
 Nine collectors feed twelve rules covering platform, shell, PATH, Python/Node runtime, requested TCP ports,
 effective Git config, local Docker/API metadata, explicit project dependencies and proxy configuration.
 Reports are plain text or versioned JSON; `explain` and `rules --json` work offline.
@@ -241,16 +241,19 @@ goreleaser build --snapshot --clean
 
 ## Roadmap
 
-M3 is **complete on the feature branch, including three-OS CI**. Read the
+M3 is **complete and merged** through [PR #3](https://github.com/Shellghostt/EnvDoctor/pull/3), with
+successful [main CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43802280915). Read the
 [M3 acceptance gates](docs/phases/M3.md), [accepted ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md)
 and [validation record](docs/testing/m3-validation.md) for its contracts and evidence.
+The [M4 requirements](docs/phases/M4.md) and [proposed report/bundle ADR](docs/adr/0006-m4-reports-and-bundles.md)
+prepare the next phase; M4 implementation has not started.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
 | M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (merged)** |
-| M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Done (feature branch, CI passed)** |
-| M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started |
+| M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Done (merged)** |
+| M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started; documents prepared |
 | M5 | Safe, confirmed automated remediation | Not started |
 | M6 | Windows, Linux, macOS packaging and signed releases | Not started |
 
