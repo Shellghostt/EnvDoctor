@@ -9,9 +9,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- [M4 preparation](docs/phases/M4.md) and [proposed ADR 0006](docs/adr/0006-m4-reports-and-bundles.md)
-  for terminal/Markdown reports, versioned bounded bundles, redaction and offline evidence. Documentation
-  only; M4 remains not started. Current status records merged M3 and successful main CI.
+- M4 ENV-024–ENV-026: scrolling Bubble Tea reports with plain fallback, explicit
+  `--format text|markdown|json`, `--plain` and escaped, bounded Markdown export.
+- Version-1 diagnostic bundles with typed allowlisted sharing evidence, opaque path/host aliases,
+  Git identity presence facts, explicit omissions, strict archive/JSON bounds and atomic publication.
+  `--include-logs` contains only structured collector statuses/timings.
+- Offline `diagnose --from-bundle`, recomputing current builtin findings from validated evidence with
+  capture/evaluator provenance and no collectors or network work.
+- Accepted [ADR 0006](docs/adr/0006-m4-reports-and-bundles.md), sharing schemas, archive/privacy/renderer/
+  CLI tests, a real terminal capture and [M4 validation](docs/testing/m4-validation.md).
+  Local gates pass; native M4 Windows/Ubuntu/macOS GitHub CI remains pending publication.
 - M3 rules ENV007–ENV012: known Docker API incompatibility, explicitly required dependency absence,
   package-manager/lockfile disagreements, effective Git identity/explicit autocrlf policy,
   canonical virtualenv/interpreter mismatch and opt-in proxy refusal/no-route evidence.
@@ -38,6 +45,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Optional bundle-source metadata extends report schema v1 and stays absent from ordinary reports.
+- Terminal dependencies are pinned/audited, including Bubble Tea v1.3.10, x/term v0.48.0,
+  x/sys v0.50.0 and x/text v0.44.0; see [M4 dependency review](docs/testing/m4-dependencies.md).
 - Optional M3 snapshot evidence extends schema v1 compatibly; project and rule-registry JSON have
   separate version-1 schemas. Explicit typed partial collector evidence retains degraded notices
   and disables dependent rules.
@@ -75,7 +85,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned
 
-- M4 reports and bundles; later rules ENV013–ENV018, confirmed fixes and signed releases.
+- Rules ENV013–ENV018, confirmed fixes and signed releases.
 
 ## [0.1.0] - 2026-11-13
 

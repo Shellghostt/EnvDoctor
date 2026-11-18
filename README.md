@@ -2,16 +2,19 @@
 
 > A cross-platform CLI that detects, diagnoses and helps resolve development environment problems.
 
-![status](https://img.shields.io/badge/status-M3_complete-green)
+![status](https://img.shields.io/badge/status-M4_locally_verified-blue)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
-**Status: M1–M3 complete and merged into main; Windows, Ubuntu and macOS CI passed.**
+**Status: M1–M3 merged; M4 implemented and locally verified on `feat/m4-implementation`.**
+Native Windows/Ubuntu/macOS M4 GitHub CI remains pending publication.
 Nine collectors feed twelve rules covering platform, shell, PATH, Python/Node runtime, requested TCP ports,
 effective Git config, local Docker/API metadata, explicit project dependencies and proxy configuration.
-Reports are plain text or versioned JSON; `explain` and `rules --json` work offline.
+Reports support a scrolling terminal viewer, plain text, Markdown and versioned JSON.
+Redacted diagnostic bundles can be evaluated offline; `explain` and `rules --json` also work offline.
 Diagnosis never applies fixes or executes interpreters found on PATH. The
-[M3 validation record](docs/testing/m3-validation.md) records commands, live checks and limits.
+[M4 validation record](docs/testing/m4-validation.md) records commands, live checks and limits;
+[M3 validation](docs/testing/m3-validation.md) preserves the merged baseline evidence.
 
 ## Why this exists
 
@@ -35,8 +38,8 @@ explains the cause instead of dumping raw output.
 | Detect virtualenv/interpreter mismatch | M3 | **Implemented**, known canonical environment metadata |
 | Inspect proxy configuration and optional reachability | M3 | **Implemented**, redacted and offline by default |
 | Explain rules and export the rule registry | M3 | **Implemented**, no collectors invoked |
-| Generate diagnostic bundles | M4 | Not started |
-| Human-readable reports | M2/M4 | **Done** plain text; interactive polish is M4 |
+| Generate redacted diagnostic bundles and evaluate them offline | M4 | **Implemented and locally verified**; native CI pending |
+| Human-readable reports | M2/M4 | Plain text, scrolling terminal viewer and escaped Markdown |
 | JSON export | M1 | **Done** |
 | Safe, opt-in automated remediation | M5 | Not started |
 | Windows, Linux and macOS support | M2/M6 | Three-OS code and fixtures; signed release/clean-host verification is M6 |
@@ -49,7 +52,10 @@ flowchart TD
     COL --> SNAP[Typed snapshot and redaction]
     SNAP --> ENGINE[Pure diagnostic engine]
     REG[Rule registry] --> ENGINE
-    ENGINE --> REPORT[Plain text or JSON with manual advice]
+    ENGINE --> REPORT[Terminal, text, Markdown or JSON report]
+    SNAP --> BUNDLE[Allowlisted sharing evidence and bounded ZIP]
+    BUNDLE --> OFFLINE[Validated captured evidence]
+    OFFLINE --> ENGINE
     META[explain and rules] --> REG
     REG --> PAGES[Generated rule pages]
 ```
@@ -109,6 +115,51 @@ The JSON document is validated against [docs/schema/diagnose-v1.schema.json](doc
 in the test suite; the snapshot inside it is described by
 [docs/schema/snapshot-v1.schema.json](docs/schema/snapshot-v1.schema.json). Home directories are replaced
 with `~`, and credential-bearing URLs are redacted before anything is written.
+
+## Terminal reports and sharing bundles
+
+The default report opens a scrolling viewer when stdin, stdout and stderr are terminals. Use arrows,
+Page Up/Page Down and `q`; quitting retains the diagnosis exit code and leaves a plain report behind.
+Interrupts and rendering failures exit 3 and restore terminal state. Redirects, `TERM=dumb`, `NO_COLOR`
+(including an empty value), `--plain` and explicit text select plain output.
+
+![EnvDoctor M4 terminal viewer](docs/images/m4-terminal.jpg)
+
+This is real Windows PTY output from the implemented CLI, displayed in xterm.js with the committed
+synthetic [viewer fixture](docs/testing/fixtures/m4-viewer/snapshot.json). Its identities and paths are
+examples. The browser display is a captured terminal preview; native console restoration and resize
+were checked separately.
+
+```powershell
+.\bin\envdoctor.exe diagnose --plain
+.\bin\envdoctor.exe diagnose --format markdown > diagnosis.md
+.\bin\envdoctor.exe diagnose --format json > diagnosis.json
+.\bin\envdoctor.exe bundle --output envdoctor-bundle.zip --include-logs
+.\bin\envdoctor.exe diagnose --from-bundle envdoctor-bundle.zip --json
+```
+
+JSON and Markdown bypass the viewer. `--json` remains an alias for `--format json`; conflicting formats
+or `--plain` with JSON/Markdown exit 4 before collection. Markdown includes evidence, manual suggestions,
+verification, limitations, degraded collectors and skipped prerequisites, with dynamic markup escaped.
+
+Bundle export uses a separate typed allowlist: Git identity becomes presence booleans, paths and hosts
+become deterministic capture-local aliases, and unsupported required evidence is explicitly omitted and
+degraded. Raw environment values, identities, project contents and free-text logs/errors are excluded.
+`--include-logs` adds only structured collector statuses and bounded timings. Numeric versions, ports and
+diagnostic facts still describe the captured setup; review the bundle before sharing it.
+
+The ZIP is below 2,000,000 bytes, with independent member, decompression and JSON-work bounds. Publication
+stages a private file and replaces the destination atomically after validation. The bounded `Writing...`
+status precedes replacement; exit 0 confirms publication, including captures with findings or degradation.
+Usage exits 4; capture, archive, cancellation, output and file failures exit 3.
+
+`--from-bundle` validates evidence and evaluates the current builtin rules without collectors or network
+work. It preserves capture provenance and omissions; saved verdicts and commands remain reference data.
+It conflicts with `--fixture-dir`, `--port`, `--probe-network` and `--package-manager`. Valid offline
+diagnosis retains exits 0/1/2/3, including 3 for unavailable required evidence. Ordinary JSON keeps its
+existing fields and Git identity; bundle-source metadata is an optional addition used by offline reports.
+Read [ADR 0006](docs/adr/0006-m4-reports-and-bundles.md) and the
+[sharing schemas](docs/schema/bundle-snapshot-v1.schema.json) for the exact policy and limits.
 
 Exit codes: `0` nothing at or above warning, `1` warnings, `2` at least one error, `3` the tool itself failed
 (including a collector timeout), `4` invalid usage. Captured collector errors retain exit 3 during offline
@@ -188,7 +239,7 @@ Different Docker product versions alone do not establish API incompatibility. Wi
 opaque shims and protected package paths remain unresolved metadata.
 
 Home paths and credential-bearing URLs are redacted, including error notices. JSON includes Git identity;
-review it before sharing. Diagnostic bundles with broader redaction remain M4.
+review it before sharing. Use the M4 bundle command for the separate allowlisted sharing representation.
 
 ## Testing
 
@@ -206,8 +257,10 @@ The suite includes 172 exact golden cases, preserving all 54 original M2 snapsho
 It builds the CLI and checks those cases through real subprocesses, validating JSON and exit codes.
 Native Windows and Linux race suites passed locally. The native Windows, Ubuntu and macOS race/test/build
 matrix, lint and vulnerability scan passed in [M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
-Both macOS architectures also cross-build. Commands, allocation measurements,
-socket lifecycle evidence and limits are in [docs/testing/m3-validation.md](docs/testing/m3-validation.md).
+M4 passes local Windows/Linux race, all canonical targets, bounded fuzzing, archive/privacy tests and
+all six static build targets. Native M4 GitHub CI is pending. Commands, terminal evidence, allocation
+measurements and limits are in [M4 validation](docs/testing/m4-validation.md);
+[M3 validation](docs/testing/m3-validation.md) records the earlier socket and CI evidence.
 
 `make docs` regenerates all twelve rule pages from the same registry as findings, `explain` and `rules`.
 `make check-docs` and CI detect documentation drift. Do not edit generated pages directly.
@@ -218,7 +271,8 @@ A local release build of all six targets:
 goreleaser build --snapshot --clean
 ```
 
-`goreleaser check` and the local six-target snapshot build passed. A snapshot build does not publish a release.
+M3 validation records the passing GoReleaser check and six-target snapshot build. M4 verifies static
+builds separately; packaging, signed releases and clean-host checks remain M6.
 
 ## Repository layout
 
@@ -230,9 +284,10 @@ goreleaser build --snapshot --clean
 | `internal/config` | Resolved options, schema version, collector timeout |
 | `internal/collector` | Parallel runner and nine collectors, including project and proxy evidence |
 | `internal/diagnostic` | Rule registry, pure engine, severity model, fixture harness |
-| `internal/report` | Terminal renderer, JSON renderer |
+| `internal/report` | Terminal lifecycle, plain text, Markdown and JSON renderers |
+| `internal/bundle` | Allowlisted export, strict bounded reader and atomic publication |
 | `internal/fix` | Remediation plans, dry-run by default (empty until M5) |
-| `internal/system` | Thin wrappers over OS facilities, the only place syscalls live |
+| `internal/system` | Machine-inspection wrappers; bundle file I/O and terminal control have separate boundaries |
 | `docs/schema` | Committed JSON schemas, enforced by tests |
 | `tests/golden` | 172 snapshot-to-diagnosis fixtures |
 | `tests/integration` | Built CLI tests against all golden cases |
@@ -245,15 +300,16 @@ M3 is **complete and merged** through [PR #3](https://github.com/Shellghostt/Env
 successful [main CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43802280915). Read the
 [M3 acceptance gates](docs/phases/M3.md), [accepted ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md)
 and [validation record](docs/testing/m3-validation.md) for its contracts and evidence.
-The [M4 requirements](docs/phases/M4.md) and [proposed report/bundle ADR](docs/adr/0006-m4-reports-and-bundles.md)
-prepare the next phase; M4 implementation has not started.
+M4 ENV-024–ENV-026 are implemented and locally verified under the
+[M4 requirements](docs/phases/M4.md) and [accepted ADR 0006](docs/adr/0006-m4-reports-and-bundles.md).
+[Validation](docs/testing/m4-validation.md) records the remaining publication/native CI gate.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
 | M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (merged)** |
 | M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Done (merged)** |
-| M4 | Polished terminal output, Markdown export, diagnostic bundles | Not started; documents prepared |
+| M4 | Terminal viewer, Markdown, redacted bundles and offline diagnosis | Implemented; local gates pass, native GitHub CI pending |
 | M5 | Safe, confirmed automated remediation | Not started |
 | M6 | Windows, Linux, macOS packaging and signed releases | Not started |
 

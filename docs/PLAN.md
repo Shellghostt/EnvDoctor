@@ -31,16 +31,18 @@ merged at `6cf358138ecd3bedf086f22536a30562fb673e4e`; its
 was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
 and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
-M4 is **in progress** on `feat/m4-implementation`, including the published preparation commit `2be420a`.
+M4 is **implemented and locally verified** on `feat/m4-implementation` at `c532dc3`, including the
+published preparation commit `2be420a`. Native M4 GitHub CI remains pending publication.
 [M4 requirements](phases/M4.md) and accepted [ADR 0006](adr/0006-m4-reports-and-bundles.md) define
-formats, allowlisted bundle export and offline diagnosis. No M4 acceptance result is claimed yet.
+formats, allowlisted bundle export and offline diagnosis. [M4 validation](testing/m4-validation.md)
+records executed local gates, bounds, privacy, terminal evidence and remaining CI work.
 
 ```yaml
 project: EnvDoctor
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1-M3 collection and twelve rules work; M4-M6 remain
+functional: partial            # M1-M4 implemented; M4 native CI and M5-M6 remain
 
 implemented:
   - cobra CLI with diagnose, version, offline explain and rules --json
@@ -59,6 +61,9 @@ implemented:
   - one builtin rule registry for findings, explain, rules JSON and generated documentation
   - home-path and credential-URL redaction including embedded collector errors
   - text report and a versioned JSON document
+  - explicit text/markdown/json formats, plain fallback and a scrolling Bubble Tea viewer
+  - bounded allowlisted ZIP bundles with atomic publication and structured optional diagnostics
+  - diagnose --from-bundle with current-rule evaluation, capture provenance and explicit omissions
   - documented exit codes 0/1/2/3/4
   - compatible snapshot/report schema v1 additions and separate project/registry v1 schemas
   - 172 golden fixtures including the unchanged 54 M2 cases and 118 additional cases
@@ -69,12 +74,9 @@ implemented:
 
 not_implemented:
   - diagnostic rules ENV013-ENV018
-  - markdown report export
-  - bubble tea output
-  - diagnostic bundles
   - fixes and undo
   - signed releases and install docs
-  - --debug-snapshot and --from-bundle
+  - --debug-snapshot
 
 source_of_truth:
   scope_and_rules: docs/PLAN.md      # this file, section 9 for rule ids
@@ -196,6 +198,10 @@ flowchart TD
     ENGINE --> RULES[Rule engine]
     RULES --> REPORT[Terminal report]
     RULES --> JSON[JSON export]
+    RULES --> MARKDOWN[Escaped Markdown report]
+    ENGINE --> BUNDLE[Allowlisted evidence and bounded ZIP]
+    BUNDLE --> OFFLINE[Validated captured evidence]
+    OFFLINE --> ENGINE
     RULES --> FIX[Fix recommendations]
     FIX -->|explicit --yes| APPLY[Apply fix]
 ```
@@ -211,7 +217,8 @@ flowchart TD
 | Network inspector | Listening ports, proxy variables, DNS reachability | Make outbound requests beyond a documented probe |
 | Rule engine | Turn a snapshot into findings | Touch the OS |
 | Explanation composer | Detected / cause / fix / verify text | Speculate beyond the rule's declared evidence |
-| Report renderer | Human text, JSON, diagnostic bundle | Add facts not present in findings |
+| Report renderer | Terminal/plain text, Markdown and JSON | Add unobserved diagnostic facts |
+| Bundle exporter/reader | Reviewed sharing facts, independent bounds and atomic publication | Extract or execute archive members |
 | Fix engine | Plan, preview, apply, verify a remediation | Run without `--yes` |
 
 ### Flow
@@ -231,7 +238,7 @@ The builtin registry owns the twelve pure evaluators and their public metadata. 
 
 ## 7. Data model
 
-There is no database. The two persisted artefacts are the snapshot and the report.
+There is no database. Snapshot/report JSON remain schema v1; M4 adds a separate versioned sharing ZIP.
 
 **Snapshot** (internal Go struct, JSON-serialisable, redacted before export):
 
@@ -288,7 +295,7 @@ probe TCP port 2375. See ADRs 0004/0005 and the committed schemas for field and 
 ## 8. Command surface and exit codes
 
 ```
-envdoctor diagnose [--json] [--component <name>] [--rule <id>] [--verbose] [--port <ports>] [--fixture-dir <dir>] [--probe-network] [--package-manager <name>[@<version>]]
+envdoctor diagnose [--format <text|markdown|json>] [--plain] [--json] [--component <name>] [--rule <id>] [--verbose] [--port <ports>] [--fixture-dir <dir> | --from-bundle <file>] [--probe-network] [--package-manager <name>[@<version>]]
 envdoctor explain <rule-id>
 envdoctor bundle [--output <file>] [--include-logs]
 envdoctor fix [--rule <id>] [--dry-run] [--yes]
@@ -296,13 +303,25 @@ envdoctor rules [--json]
 envdoctor version
 ```
 
-Implemented as of M3: `diagnose`, `version`, offline `explain` and `rules`/`rules --json`.
-`bundle` and `fix` remain planned; see section 0 for the authoritative list. Unknown rule IDs and invalid
+Implemented through M4: `diagnose`, `bundle`, `version`, offline `explain` and `rules`/`rules --json`.
+`fix` remains planned; see section 0 for the authoritative list. Unknown rule IDs and invalid
 metadata arguments exit 4; output failures exit 3.
 
 M4 format/plain/bundle-input flags and bundle command semantics are accepted in
-[ADR 0006](adr/0006-m4-reports-and-bundles.md). Implementation is in progress. Bundle export must use a
-separate sharing policy; ordinary JSON continues to include effective Git identity.
+[ADR 0006](adr/0006-m4-reports-and-bundles.md) and implemented at `c532dc3`. JSON/Markdown bypass the
+viewer; explicit plain/text and unsuitable terminal streams fall back to plain output. Format conflicts
+exit 4 before collection. Viewer quit retains the diagnosis exit; interrupt/render failure exits 3 and
+restores terminal state with a plain fallback.
+
+`bundle` captures the complete builtin report with the existing capture controls. Its separate sharing
+policy removes raw identifying/free-text values. `--include-logs` contains only structured collector
+statuses/timings. The pre-publication status includes byte count and original diagnosis exit; successful
+atomic publication exits 0. Capture/archive/cancellation/output/I/O failures exit 3; usage exits 4.
+
+`diagnose --from-bundle` runs no collectors, commands, home/path inspection or network work. It evaluates
+validated captured evidence under the current registry, retaining capture metadata and explicit omissions.
+It rejects fixture/requested-port/probe/package-manager flags and preserves the diagnosis exit mapping.
+Ordinary JSON continues to include effective Git identity; its existing fields/values are unchanged.
 
 | Exit code | Meaning |
 |---|---|
@@ -520,21 +539,23 @@ tests and records local measurements without claiming M6 clean-host/release cove
 
 **Deliverable:** polished terminal output (Bubble Tea when TTY), Markdown export, `bundle` command.
 
-Status: **In progress; ADR 0006 accepted before dependent code.** Follow [M4 requirements](phases/M4.md) and
+Status: **Implemented and locally verified; publication/native M4 GitHub CI pending.**
+ADR 0006 was accepted before dependent code. Follow [M4 requirements](phases/M4.md) and
 [accepted ADR 0006](adr/0006-m4-reports-and-bundles.md). Bundle input/export has
-its own version/redaction/omission policy; copying the current report is not sufficient.
+its own version/redaction/omission policy. [M4 validation](testing/m4-validation.md) maps acceptance to executed evidence.
 
 **Acceptance criteria**
 
-- [ ] Non-TTY output is plain text, stable, and contains no ANSI codes
-- [ ] TTY/NO_COLOR/redirect/format and Markdown escaping cases preserve reports/exits and terminal cleanup
-- [ ] `envdoctor bundle` produces a versioned zip below 2,000,000 compressed bytes with independent entry/decompression limits
-- [ ] Allowlisted export removes synthetic raw environment values, tokens and identities from every member/error path
-- [ ] Removed evidence is explicitly omitted/inconclusive; saved report verdicts never override validated captured evidence
-- [ ] Cross-OS `diagnose --from-bundle` runs no collectors, commands or network and preserves capture/evaluator provenance
-- [ ] Corrupt/traversal/bomb/duplicate/version/oversize archives and atomic write failures are tested
-- [ ] M1–M3 golden/JSON/registry/probe regressions and native CI pass, with all M4 evidence recorded
-- [ ] One screenshot in the README, taken from a real run
+- [x] Non-TTY output is plain text, stable, and contains no ANSI codes
+- [x] TTY/NO_COLOR/redirect/format and Markdown escaping cases preserve reports/exits and terminal cleanup
+- [x] `envdoctor bundle` produces a versioned zip below 2,000,000 compressed bytes with independent entry/decompression limits
+- [x] Allowlisted export removes synthetic raw environment values, tokens and identities from every member/error path
+- [x] Removed evidence is explicitly omitted/inconclusive; saved report verdicts never override validated captured evidence
+- [x] Cross-OS `diagnose --from-bundle` runs no collectors, commands or network and preserves capture/evaluator provenance
+- [x] Corrupt/traversal/bomb/duplicate/version/oversize archives and atomic write failures are tested
+- [x] M1–M3 golden/JSON/registry/probe regressions and local gates pass, with all local M4 evidence recorded
+- [ ] Native Windows/Ubuntu/macOS GitHub CI passes for the final M4 branch
+- [x] One screenshot in the README, taken from a real run
 
 ### M5 — Safe remediation
 
@@ -607,7 +628,7 @@ its own version/redaction/omission policy; copying the current report is not suf
 - **CLI integration tests** run the built binary against a fixture directory (`--fixture-dir`), asserting
   stdout, stderr and exit code.
 - **Redaction tests** attempt to leak synthetic credentials through snapshots, findings and notices.
-  Bundle sharing/redaction remains a separate M4 acceptance gate.
+  M4 sharing tests exercise every member, fixed error output and structured diagnostics.
 - **Cross-platform:** the same suite runs on `windows-latest`, `ubuntu-latest`, `macos-latest`. A rule that
   has a platform exclusion records it in registry caveats and explicit inconclusive fixtures.
 
@@ -622,7 +643,7 @@ No telemetry, by design. Diagnostics only:
 
 - `--verbose` prints collector timings; errors are redacted.
 - Planned `envdoctor diagnose --debug-snapshot <file>` will write a snapshot for bug reports.
-- Planned bundles will include tool version, OS build and collector timings.
+- Bundles include normalized tool/platform metadata, explicit omissions and optional structured collector timings.
 
 There is no `envdoctor.io` endpoint. There is no analytics. A PR that adds phone-home is rejected.
 
@@ -671,10 +692,11 @@ Explicitly out of scope: malware detection, host compromise assessment.
 
 ## 19. Anti-hallucination contract
 
-**Facts:** M1–M3 collection, twelve pure diagnostic rules, plain-text/JSON reporting, offline metadata
-commands and bounded offline diagnosis are implemented and tested. Native Windows/Linux local race
-suites and native Windows/Ubuntu/macOS M3 CI pass. Bundles, automatic fixes, rules ENV013–ENV018
-and signed releases remain future work. Runtime discovery does not execute PATH candidates and unknown
+**Facts:** M1–M4 collection, twelve pure rules, terminal/plain/Markdown/JSON reporting, offline metadata
+commands and allowlisted bundles/offline diagnosis are implemented and locally tested. Native Windows/
+Linux race and all six static builds pass. Native M3 three-OS CI passed; M4 GitHub CI is pending publication.
+Automatic fixes, rules ENV013–ENV018 and signed releases remain future work. Runtime discovery does not
+execute PATH candidates and unknown
 metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 
 **Rules:**
@@ -706,6 +728,7 @@ metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 2. `make build && ./bin/envdoctor diagnose`; compare what it prints with section 0's `functional` field.
 3. Pick the next unchecked item in the current milestone. Rules come with fixtures or they do not come.
    M4 requirements are in [phases/M4.md](phases/M4.md); ADR 0006 is accepted. Implementation was requested
-   on 2026-11-19; preserve the accepted export/CLI decisions and verify each acceptance gate.
+   on 2026-11-19 and is locally verified at `c532dc3`. Preserve accepted export/CLI decisions; the next
+   acceptance step is publication and native GitHub CI. See [M4 validation](testing/m4-validation.md).
 4. Run `make test` — golden fixtures will tell you immediately if a rule change broke another platform.
 5. Never add a fix without the safety model. If in doubt, print the command instead of running it.

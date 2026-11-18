@@ -1,8 +1,8 @@
 # EnvDoctor Architecture
 
-**Status: M1–M3 complete and merged into main; three-OS CI passed.** Nine collectors feed
-twelve pure rules and a plain-text/JSON report. Offline metadata commands and generated pages share the
-same rule registry. Bundles, automatic fixes and interactive output remain planned.
+**Status: M1–M3 merged; M4 implemented and locally verified. Native M4 GitHub CI is pending.**
+Nine collectors feed twelve pure rules and terminal/plain/Markdown/JSON reports. Offline metadata commands,
+generated pages and validated bundle diagnosis share the same registry. Automatic fixes remain planned.
 The authoritative specification is [PLAN.md](PLAN.md); [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
 records the M3 extensions to the M2 evidence and inspection boundaries.
 
@@ -25,7 +25,11 @@ flowchart TD
     SNAP --> REDACT[Home and credential URL redaction]
     REDACT --> ENGINE[Pure rule evaluation]
     REG[Immutable builtin registry] --> ENGINE
-    ENGINE --> REPORT[Plain text or JSON with manual advice]
+    ENGINE --> REPORT[Terminal, text, Markdown or JSON with manual advice]
+    REDACT --> EXPORT[Typed allowlisted sharing model]
+    EXPORT --> ZIP[Bounded validated ZIP publication]
+    ZIP --> READ[Strict archive and evidence validation]
+    READ --> ENGINE
     FIXTURE[Offline versioned snapshot] --> REDACT
     META[explain and rules] --> REG
     GEN[cmd/rulegen] --> REG
@@ -76,13 +80,13 @@ The generator's check mode is enforced by tests and CI. Optional M3 snapshot fie
 project and registry JSON have separate version-1 schemas.
 
 Redaction covers home paths and credential-bearing URLs, including errors. Git identity remains part of
-the JSON snapshot under the M2 sharing contract. The future bundle feature must define its own sharing
-policy. No current command applies a fix.
+the JSON snapshot under the M2 sharing contract. Bundles use the separate M4 sharing policy.
+No current command applies a fix.
 
 ## What is deliberately absent
 
-See [PLAN.md](PLAN.md) section 4 (non-goals). If a component is not on that diagram, it is not part of the
-design.
+See [PLAN.md](PLAN.md) section 3 for non-goals and section 4 for release scope. Rules ENV013–ENV018,
+automatic fixes/undo and signed packaging remain later milestones.
 
 ## M3 evidence
 
@@ -92,10 +96,35 @@ and Linux race suites passed locally; native Windows/Ubuntu/macOS tests and race
 [M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
 [Development tools](DEVELOPMENT-TOOLS.md) records navigation and runtime-profiling coverage.
 
-## M4 preparation
+## M4 report and bundle boundaries
 
 [M4 requirements](phases/M4.md) and [accepted ADR 0006](adr/0006-m4-reports-and-bundles.md) define
-Bubble Tea/plain/Markdown output and bounded versioned bundles. A separate export policy must remove
-identifying/free-text data and expose resulting evidence omissions. Offline bundle diagnosis evaluates
-captured facts under the current registry without inspecting the receiving machine. These paths are
-being implemented on `feat/m4-implementation`; existing plain/JSON/fixture contracts remain compatible.
+Bubble Tea/plain/Markdown output and bounded versioned bundles, implemented at `c532dc3`.
+The CLI resolves format conflicts before collection. Automatic viewer selection requires all three
+streams to be terminals; explicit formats bypass terminal/environment detection. The report adapter
+owns terminal state, output-error cancellation and a joined 200 ms resize poller. Every viewer exit
+restores state and writes plain output. Markdown escapes dynamic content and bounds its buffer to 2 MiB.
+
+`internal/bundle` owns selected-file I/O, private temporary staging and same-directory atomic replacement.
+These file operations and `internal/report` terminal control are explicit OS boundaries alongside the
+existing machine-inspection wrappers. The pure rule engine and sharing-model conversion inspect no host.
+
+The exporter copies reviewed facts into a separate model, substitutes equality/presence aliases and
+records fixed omissions. A source-model coverage guard rejects unreviewed collector fields. Bundle
+reports are recomputed from sharing evidence. Raw errors/logs/identity and arbitrary original findings
+are excluded; optional diagnostics contain only allowlisted statuses/timings.
+
+The reader preflights the complete ZIP directory/local records, bounds streamed Store/Deflate input,
+checks CRC/digests and cross-member metadata, then validates exact typed JSON tags and semantic constraints.
+Tests compile committed schemas with network loading forbidden. Archives are read without extraction.
+Only the sanitized snapshot and provenance reach offline diagnosis; the current registry recomputes
+findings. Captured OS normalization preserves ENV011 equality without receiving-host lookups.
+
+Windows publication applies a protected current-user/SYSTEM ACL before writing payload bytes and uses
+`MoveFileEx`; Unix uses mode 0600 and rename. Failure paths remove the owned stage and preserve the prior
+destination. Atomic namespace replacement assumes a supporting local filesystem; network filesystem
+and power-loss guarantees are outside this format.
+
+[M4 validation](testing/m4-validation.md) records native terminal checks, cross-OS captures, bounds,
+privacy, lifecycle measurements and pending GitHub CI. Existing collectors, rule pages, 172 golden
+fixtures and ordinary JSON/fixture behavior remain compatible.
