@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/bundle-versions-v1.schema.json",
+  "title": "EnvDoctor shared version metadata v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "tool",
+    "runtimes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "tool": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/tool"
+    },
+    "runtimes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "python",
+              "node"
+            ]
+          },
+          "version": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+          }
+        }
+      },
+      "maxItems": 128
+    },
+    "git": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+    },
+    "docker": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+    }
+  }
+}

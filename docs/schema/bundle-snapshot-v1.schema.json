@@ -1,0 +1,627 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/bundle-snapshot-v1.schema.json",
+  "title": "EnvDoctor allowlisted sharing snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "collectedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "collectedAt": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/utc"
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "version",
+        "arch",
+        "elevated"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "windows",
+            "linux",
+            "darwin"
+          ]
+        },
+        "version": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+        },
+        "arch": {
+          "type": "string",
+          "enum": [
+            "amd64",
+            "arm64",
+            "386",
+            "arm",
+            "ppc64le",
+            "s390x",
+            "riscv64"
+          ]
+        },
+        "elevated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "powershell",
+            "pwsh",
+            "cmd",
+            "bash",
+            "zsh",
+            "fish",
+            "sh",
+            "dash",
+            "ksh",
+            "tcsh",
+            "csh",
+            "nu"
+          ]
+        }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entries"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "token",
+              "exists",
+              "isDir",
+              "position",
+              "duplicate"
+            ],
+            "properties": {
+              "token": {
+                "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/pathToken"
+              },
+              "exists": {
+                "type": "boolean"
+              },
+              "isDir": {
+                "type": "boolean"
+              },
+              "position": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1023
+              },
+              "duplicate": {
+                "type": "boolean"
+              }
+            }
+          },
+          "maxItems": 1024
+        }
+      }
+    },
+    "runtimes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version",
+          "pathToken",
+          "manager",
+          "active"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "python",
+              "node"
+            ]
+          },
+          "version": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+          },
+          "pathToken": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/pathToken"
+          },
+          "manager": {
+            "type": "string",
+            "enum": [
+              "system",
+              "venv",
+              "pyenv",
+              "nvm",
+              "fnm",
+              "volta"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "expected": {
+            "type": "boolean"
+          },
+          "missing": {
+            "type": "boolean"
+          },
+          "resolvedToken": {
+            "anyOf": [
+              { "const": "" },
+              { "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/pathToken" }
+            ]
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "",
+              "known",
+              "unknown"
+            ]
+          },
+          "environmentToken": {
+            "anyOf": [
+              { "const": "" },
+              { "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/environmentToken" }
+            ]
+          }
+        }
+      },
+      "maxItems": 128
+    },
+    "ports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "port",
+          "protocol",
+          "state"
+        ],
+        "properties": {
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "protocol": {
+            "type": "string",
+            "enum": [
+              "tcp",
+              "udp"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "listen",
+              "established",
+              "closed",
+              "unknown"
+            ]
+          }
+        }
+      },
+      "maxItems": 1024
+    },
+    "requestedPorts": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 65535
+      },
+      "maxItems": 1024
+    },
+    "docker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cliVersion",
+        "installed",
+        "daemonReachable"
+      ],
+      "properties": {
+        "cliVersion": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+        },
+        "installed": {
+          "type": "boolean"
+        },
+        "daemonReachable": {
+          "type": "boolean"
+        },
+        "probeStatus": {
+          "type": "string",
+          "enum": [
+            "",
+            "absent",
+            "available",
+            "unavailable",
+            "unknown",
+            "denied",
+            "unsupported"
+          ]
+        },
+        "clientApi": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        },
+        "clientMinApi": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        },
+        "clientDefaultApi": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        },
+        "serverApi": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        },
+        "serverMinApi": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        },
+        "apiOverride": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/api"
+        }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "userNamePresent",
+        "userEmailPresent",
+        "identityChecked",
+        "autocrlf",
+        "autocrlfOriginKnown"
+      ],
+      "properties": {
+        "version": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/version"
+        },
+        "userNamePresent": {
+          "type": "boolean"
+        },
+        "userEmailPresent": {
+          "type": "boolean"
+        },
+        "identityChecked": {
+          "type": "boolean"
+        },
+        "autocrlf": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/autocrlf"
+        },
+        "autocrlfOriginKnown": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectToken",
+        "requirementsDeclared"
+      ],
+      "properties": {
+        "projectToken": {
+          "anyOf": [
+            {
+              "const": ""
+            },
+            {
+              "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/pathToken"
+            }
+          ]
+        },
+        "requirementsDeclared": {
+          "type": "boolean"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "name",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "tool",
+                  "library"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "enum": [
+                  "cmake",
+                  "make",
+                  "gcc",
+                  "pkg-config",
+                  "openssl"
+                ]
+              },
+              "pathToken": {
+                "anyOf": [
+                  { "const": "" },
+                  { "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/pathToken" }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "missing",
+                  "unknown"
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "tool"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "enum": [
+                        "cmake",
+                        "make",
+                        "gcc",
+                        "pkg-config"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "library"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "name": {
+                      "const": "openssl"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 32
+        },
+        "package": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "manifestPresent"
+          ],
+          "properties": {
+            "manifestPresent": {
+              "type": "boolean"
+            },
+            "declared": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "version"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "npm",
+                    "pnpm",
+                    "yarn",
+                    "bun"
+                  ]
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,8})\\.(?:0|[1-9][0-9]{0,8})\\.(?:0|[1-9][0-9]{0,8})$"
+                }
+              }
+            },
+            "runner": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "npm",
+                    "pnpm",
+                    "yarn",
+                    "bun"
+                  ]
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^(?:0|[1-9][0-9]{0,8})\\.(?:0|[1-9][0-9]{0,8})\\.(?:0|[1-9][0-9]{0,8})$"
+                }
+              }
+            },
+            "lockfiles": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "package-lock.json",
+                  "npm-shrinkwrap.json",
+                  "pnpm-lock.yaml",
+                  "yarn.lock",
+                  "bun.lock",
+                  "bun.lockb"
+                ]
+              },
+              "maxItems": 4096
+            }
+          }
+        },
+        "gitAutocrlf": {
+          "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/autocrlf"
+        }
+      }
+    },
+    "pythonEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootToken",
+        "metadataKnown"
+      ],
+      "properties": {
+        "rootToken": {
+          "anyOf": [
+            {
+              "const": ""
+            },
+            {
+              "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/environmentToken"
+            }
+          ]
+        },
+        "canonicalToken": {
+          "anyOf": [
+            { "const": "" },
+            { "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/environmentToken" }
+          ]
+        },
+        "metadataKnown": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "metadataKnown": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "canonicalToken"
+            ]
+          }
+        }
+      ]
+    },
+    "proxies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "variable",
+          "scheme",
+          "hostToken",
+          "port",
+          "probe"
+        ],
+        "properties": {
+          "variable": {
+            "type": "string",
+            "enum": [
+              "HTTP_PROXY",
+              "HTTPS_PROXY",
+              "ALL_PROXY"
+            ]
+          },
+          "scheme": {
+            "type": "string",
+            "enum": [
+              "http",
+              "https",
+              "socks5",
+              "socks5h"
+            ]
+          },
+          "hostToken": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/hostToken"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "probe": {
+            "type": "string",
+            "enum": [
+              "untested",
+              "reachable",
+              "unreachable",
+              "unknown",
+              "invalid"
+            ]
+          }
+        }
+      },
+      "maxItems": 3
+    },
+    "noProxyConfigured": {
+      "type": "boolean"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "collector",
+          "reason"
+        ],
+        "properties": {
+          "collector": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/collector"
+          },
+          "reason": {
+            "const": "unavailable"
+          }
+        }
+      },
+      "maxItems": 32
+    }
+  }
+}

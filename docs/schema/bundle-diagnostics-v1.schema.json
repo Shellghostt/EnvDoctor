@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/bundle-diagnostics-v1.schema.json",
+  "title": "EnvDoctor allowlisted collector diagnostics v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "collectors"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "collectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "collector",
+          "durationMs",
+          "status"
+        ],
+        "properties": {
+          "collector": {
+            "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/collector"
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          }
+        }
+      },
+      "maxItems": 32
+    }
+  }
+}

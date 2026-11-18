@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-19T10:00:00Z",
+  "platform": {"os": "windows", "version": "11", "arch": "amd64", "elevated": false},
+  "shell": {"name": "powershell"},
+  "path": {"entries": [
+    {"raw": "C:\\Synthetic\\bin", "exists": true, "isDir": true, "position": 0, "duplicate": false},
+    {"raw": "C:\\Synthetic\\old-tools", "exists": false, "isDir": false, "position": 1, "duplicate": false}
+  ]},
+  "runtimes": [
+    {"name": "python", "version": "3.12.1", "path": "C:\\Synthetic\\Python312\\python.exe", "manager": "system", "active": true, "resolvedPath": "C:\\Synthetic\\Python312\\python.exe", "resolution": "known"},
+    {"name": "python", "version": "3.11.9", "path": "C:\\Synthetic\\Python311\\python.exe", "manager": "system", "active": true, "resolvedPath": "C:\\Synthetic\\Python311\\python.exe", "resolution": "known"},
+    {"name": "python", "version": "3.12.1", "path": "C:\\Synthetic\\project\\.venv\\Scripts\\python.exe", "manager": "venv", "active": false, "expected": true, "resolvedPath": "C:\\Synthetic\\Python312\\python.exe", "resolution": "known", "environmentRoot": "C:\\Synthetic\\project\\.venv"}
+  ],
+  "requestedPorts": [3000],
+  "ports": [{"port": 3000, "protocol": "tcp", "state": "listen", "process": "synthetic-listener", "pid": 42}],
+  "git": {"version": "2.53.0", "userName": "Synthetic Fixture", "userEmail": "fixture@example.invalid", "autocrlf": "input", "identityChecked": true},
+  "docker": {"cliVersion": "29.9.2", "installed": true, "daemonReachable": true, "context": "local-default", "probeStatus": "available", "clientApi": "1.56", "clientMinApi": "1.40", "serverApi": "1.56", "serverMinApi": "1.40"},
+  "dependencies": {"projectRoot": "C:\\Synthetic\\project", "package": {"manifest": "C:\\Synthetic\\project\\package.json", "declared": {"name": "pnpm", "version": "9.0.0"}, "runner": {"name": "npm", "version": "10.0.0"}, "lockfiles": ["pnpm-lock.yaml"]}},
+  "pythonEnvironment": {"root": "C:\\Synthetic\\project\\.venv", "canonicalRoot": "C:\\Synthetic\\project\\.venv", "metadataKnown": true}
+}
