@@ -1,6 +1,6 @@
 # EnvDoctor Architecture
 
-**Status: M1–M3 merged; M4 implemented and locally verified. Native M4 GitHub CI is pending.**
+**Status: M1–M3 merged; M4 implemented and verified, including native three-OS GitHub CI.**
 Nine collectors feed twelve pure rules and terminal/plain/Markdown/JSON reports. Offline metadata commands,
 generated pages and validated bundle diagnosis share the same registry. Automatic fixes remain planned.
 The authoritative specification is [PLAN.md](PLAN.md); [ADR 0005](adr/0005-m3-evidence-and-rule-registry.md)
@@ -126,5 +126,5 @@ destination. Atomic namespace replacement assumes a supporting local filesystem;
 and power-loss guarantees are outside this format.
 
 [M4 validation](testing/m4-validation.md) records native terminal checks, cross-OS captures, bounds,
-privacy, lifecycle measurements and pending GitHub CI. Existing collectors, rule pages, 172 golden
+privacy, lifecycle measurements and passing GitHub CI. Existing collectors, rule pages, 172 golden
 fixtures and ordinary JSON/fixture behavior remain compatible.

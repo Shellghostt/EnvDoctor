@@ -31,18 +31,19 @@ merged at `6cf358138ecd3bedf086f22536a30562fb673e4e`; its
 was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
 and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
-M4 is **implemented and locally verified** on `feat/m4-implementation` at `c532dc3`, including the
-published preparation commit `2be420a`. Native M4 GitHub CI remains pending publication.
+M4 is **implemented and verified** on `feat/m4-implementation` at `c532dc3`, including the
+published preparation commit `2be420a`. Native M4 GitHub CI passed;
+[PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review.
 [M4 requirements](phases/M4.md) and accepted [ADR 0006](adr/0006-m4-reports-and-bundles.md) define
 formats, allowlisted bundle export and offline diagnosis. [M4 validation](testing/m4-validation.md)
-records executed local gates, bounds, privacy, terminal evidence and remaining CI work.
+records executed local gates, bounds, privacy, terminal evidence and passing native GitHub CI.
 
 ```yaml
 project: EnvDoctor
 status: mvp
 version: 0.1.0
 builds: true
-functional: partial            # M1-M4 implemented; M4 native CI and M5-M6 remain
+functional: partial            # M1-M4 verified; M5-M6 remain
 
 implemented:
   - cobra CLI with diagnose, version, offline explain and rules --json
@@ -539,7 +540,7 @@ tests and records local measurements without claiming M6 clean-host/release cove
 
 **Deliverable:** polished terminal output (Bubble Tea when TTY), Markdown export, `bundle` command.
 
-Status: **Implemented and locally verified; publication/native M4 GitHub CI pending.**
+Status: **Implemented and verified; native M4 GitHub CI passed, PR #4 open for review.**
 ADR 0006 was accepted before dependent code. Follow [M4 requirements](phases/M4.md) and
 [accepted ADR 0006](adr/0006-m4-reports-and-bundles.md). Bundle input/export has
 its own version/redaction/omission policy. [M4 validation](testing/m4-validation.md) maps acceptance to executed evidence.
@@ -554,7 +555,7 @@ its own version/redaction/omission policy. [M4 validation](testing/m4-validation
 - [x] Cross-OS `diagnose --from-bundle` runs no collectors, commands or network and preserves capture/evaluator provenance
 - [x] Corrupt/traversal/bomb/duplicate/version/oversize archives and atomic write failures are tested
 - [x] M1–M3 golden/JSON/registry/probe regressions and local gates pass, with all local M4 evidence recorded
-- [ ] Native Windows/Ubuntu/macOS GitHub CI passes for the final M4 branch
+- [x] Native Windows/Ubuntu/macOS GitHub CI passes for the final M4 branch
 - [x] One screenshot in the README, taken from a real run
 
 ### M5 — Safe remediation
@@ -694,7 +695,7 @@ Explicitly out of scope: malware detection, host compromise assessment.
 
 **Facts:** M1–M4 collection, twelve pure rules, terminal/plain/Markdown/JSON reporting, offline metadata
 commands and allowlisted bundles/offline diagnosis are implemented and locally tested. Native Windows/
-Linux race and all six static builds pass. Native M3 three-OS CI passed; M4 GitHub CI is pending publication.
+Linux race and all six static builds pass. Native M3 and M4 three-OS GitHub CI passed.
 Automatic fixes, rules ENV013–ENV018 and signed releases remain future work. Runtime discovery does not
 execute PATH candidates and unknown
 metadata stays unknown. Optional proxy reachability requires explicit opt-in.
@@ -728,7 +729,7 @@ metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 2. `make build && ./bin/envdoctor diagnose`; compare what it prints with section 0's `functional` field.
 3. Pick the next unchecked item in the current milestone. Rules come with fixtures or they do not come.
    M4 requirements are in [phases/M4.md](phases/M4.md); ADR 0006 is accepted. Implementation was requested
-   on 2026-11-19 and is locally verified at `c532dc3`. Preserve accepted export/CLI decisions; the next
-   acceptance step is publication and native GitHub CI. See [M4 validation](testing/m4-validation.md).
+   on 2026-11-19 and is verified at `c532dc3`, including native GitHub CI. Preserve accepted export/CLI
+   decisions; PR #4 is open for review. See [M4 validation](testing/m4-validation.md).
 4. Run `make test` — golden fixtures will tell you immediately if a rule change broke another platform.
 5. Never add a fix without the safety model. If in doubt, print the command instead of running it.

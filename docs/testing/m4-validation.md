@@ -1,13 +1,15 @@
 # EnvDoctor M4 validation — 2026-11-19
 
-ENV-024–ENV-026 are implemented and locally verified on `feat/m4-implementation`.
+ENV-024–ENV-026 are implemented and verified on `feat/m4-implementation`.
 Implementation commit: `c532dc33bd16271fb19298cf600a5dd6b05cceb9`.
 The branch includes published preparation `2be420a`, based on merged M3 `6cf3581`.
 [ADR 0006](../adr/0006-m4-reports-and-bundles.md) was accepted and committed at `32da338`
 before dependent implementation. Accepted ADRs and all 172 original golden fixtures are unchanged.
 
-**Publication and native Windows/Ubuntu/macOS M4 GitHub CI remain pending.** This record covers local
-implementation, verification and limits. It does not claim a release, main merge or native macOS run.
+**The feature branch is published and native Windows/Ubuntu/macOS M4 GitHub CI passed.**
+[PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review. This record covers local and
+CI verification and their limits; signed releases, a main merge and native macOS interactive observation
+remain separate work.
 Recorded dates use Asia/Calcutta; console captures also contain the corresponding 2026-11-18 UTC time.
 
 ## Environment and canonical gates
@@ -31,12 +33,27 @@ x64 GCC/G++ beneath `%LOCALAPPDATA%/Programs/MSYS2-Go-x64/msys64/ucrt64/bin`.
 | `go mod verify` | All modules verified |
 | Bounded `FuzzM4BundleReader` run | Passed: 15 s fuzz budget, two workers, 3,158 executions, one new interesting input; no failure corpus |
 | Documentation and local review | `make check-docs`, local Markdown file links, all 40 named M4 test/fuzz/benchmark functions and `git diff --check` passed; golden/registry/ADR files preserved |
-| Native three-OS M4 GitHub CI | **Pending publication**; earlier M3 CI is recorded separately in [M3 validation](m3-validation.md) |
+| Native three-OS M4 GitHub CI | **Passed**, all five jobs in both PR and push workflows on `5eff1dd`; executed evidence below |
 
 Static build sizes were 5,173,410 bytes for linux/amd64; 4,915,362 for linux/arm64;
 5,245,904 for darwin/amd64; 4,989,714 for darwin/arm64; and 5,106,688 for windows/arm64.
 These compile checks cover all six targets and stay below the 25 MB target. They are not signed release
 or native macOS execution evidence. GoReleaser packaging was not rerun for M4.
+
+## GitHub CI verification
+
+Publication was authorized on 2026-11-19. The pushed implementation and local validation record,
+`5eff1dd4883ddbed72fc059d85fca9493493e646`, passed both workflows:
+
+| Workflow | Run | Result |
+|---|---|---|
+| Pull request | [44421272870](https://github.com/Shellghostt/EnvDoctor/actions/runs/44421272870) | **5/5 jobs passed** |
+| Feature push | [44421244163](https://github.com/Shellghostt/EnvDoctor/actions/runs/44421244163) | **5/5 jobs passed** |
+
+Each native Windows/Ubuntu/macOS job executed formatting, vet, generated-document checks,
+`go test -race -count=1 -timeout=120s ./...` and `go build ./...`. Lint and `govulncheck` also passed.
+These runs execute the M4 source on native runners; local PTY observations and performance measurements
+remain distinct evidence. PR #4 exposes checks for the current branch head after documentation updates.
 
 ## Acceptance mapping
 
@@ -53,9 +70,9 @@ or native macOS execution evidence. GoReleaser packaging was not rerun for M4.
 | Schema compatibility and required structure validation | `TestM4BundleMembersMatchCommittedSchemas`, `TestM4OptionalEmptyAliasesMatchSchemaAndReader`, original diagnose/snapshot schema and built-CLI tests |
 | Atomic output failure, cancellation, locked destinations and private staging | `TestM4PublicationEveryStagePreservesDestination`, `TestM4AtomicPublicationAndCancellation`, `TestM4SymlinkDestinationAndInputAreNotFollowed`, `TestM4WindowsAtomicReplaceLockedDestination`, `TestM4WindowsPublicationHasPrivateProtectedACL`, `TestM4CLIBundleStatusFailurePreservesDestination` |
 | M1–M3 collectors, rules, JSON, registry, goldens and opt-in probe contracts | Full canonical test/race suites; original 172 goldens and twelve rule pages have no diff |
-| Pinned/audited terminal dependencies and local gates | [Dependency review](m4-dependencies.md), canonical gate table above; native M4 GitHub CI remains unchecked |
+| Pinned/audited terminal dependencies and local/native CI gates | [Dependency review](m4-dependencies.md), canonical gate and GitHub CI tables above |
 | Real README screenshot | [m4-terminal.jpg](../images/m4-terminal.jpg), from actual CLI Windows PTY output using committed synthetic identities/paths |
-| Measured lifecycle/time/memory limits and honest remaining work | Resource measurements, native evidence and pending-CI/release limits below |
+| Measured lifecycle/time/memory limits and honest remaining work | Resource measurements, native evidence and interactive/performance/release limits below |
 
 The runtime reader uses exact typed JSON grammar preflight and semantic validation. Schema tests compile
 the committed schemas with network loading forbidden. Ordinary report-v1 properties/values are unchanged;
@@ -195,9 +212,9 @@ Native console reproduction: build `./tests/terminal` into `bin/m4-terminal-prob
 Use a capable console with `TERM=xterm-256color` and `NO_COLOR` absent. The harness only changes its
 owned viewport and records modes/cursor; production diagnosis has no testing-only flags.
 
-## Remaining acceptance work
+## Review and later milestones
 
-Push the M4 feature branch after publication approval and run native Windows/Ubuntu/macOS GitHub CI,
-including lint/security. Keep that checkbox pending until the final branch passes. Native macOS
-interactive observation, cold/clean-host performance, packaging and signed releases are not claimed.
+The M4 branch is published in PR #4 with passing native Windows/Ubuntu/macOS tests, race and builds,
+lint and vulnerability scanning. Review and merging remain separate decisions. Native macOS
+interactive observation, cold/clean-host performance, packaging and signed releases remain later work.
 Rules ENV013–ENV018 and fix/apply/undo remain later milestones.

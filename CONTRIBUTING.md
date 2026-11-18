@@ -37,7 +37,7 @@ Each new rule needs positive, negative and edge snapshots for Windows, Linux and
 findings are reviewed evidence, not output regenerated from the implementation. See
 [M3 validation](docs/testing/m3-validation.md) for native Windows and Linux race commands and limits.
 [M4 validation](docs/testing/m4-validation.md) records terminal, sharing, archive, offline and resource
-cases. M4 local gates pass; native three-OS GitHub CI remains pending publication.
+cases. M4 local gates and native Windows/Ubuntu/macOS GitHub CI pass.
 Windows race tests need a 64-bit MinGW-w64-compatible GCC configured in Go's CC/CXX; ordinary static
 builds use `make build`, which disables CGO only for that target.
 

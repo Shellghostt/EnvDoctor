@@ -2,12 +2,14 @@
 
 > A cross-platform CLI that detects, diagnoses and helps resolve development environment problems.
 
-![status](https://img.shields.io/badge/status-M4_locally_verified-blue)
+![status](https://img.shields.io/badge/status-M4_verified-green)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
-**Status: M1–M3 merged; M4 implemented and locally verified on `feat/m4-implementation`.**
-Native Windows/Ubuntu/macOS M4 GitHub CI remains pending publication.
+**Status: M1–M3 merged; M4 implemented and verified on `feat/m4-implementation`.**
+Native Windows/Ubuntu/macOS race, tests and builds, lint and the vulnerability scan passed in
+[M4 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/44421272870).
+[PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review.
 Nine collectors feed twelve rules covering platform, shell, PATH, Python/Node runtime, requested TCP ports,
 effective Git config, local Docker/API metadata, explicit project dependencies and proxy configuration.
 Reports support a scrolling terminal viewer, plain text, Markdown and versioned JSON.
@@ -38,7 +40,7 @@ explains the cause instead of dumping raw output.
 | Detect virtualenv/interpreter mismatch | M3 | **Implemented**, known canonical environment metadata |
 | Inspect proxy configuration and optional reachability | M3 | **Implemented**, redacted and offline by default |
 | Explain rules and export the rule registry | M3 | **Implemented**, no collectors invoked |
-| Generate redacted diagnostic bundles and evaluate them offline | M4 | **Implemented and locally verified**; native CI pending |
+| Generate redacted diagnostic bundles and evaluate them offline | M4 | **Implemented and verified** locally and in native CI |
 | Human-readable reports | M2/M4 | Plain text, scrolling terminal viewer and escaped Markdown |
 | JSON export | M1 | **Done** |
 | Safe, opt-in automated remediation | M5 | Not started |
@@ -258,8 +260,8 @@ It builds the CLI and checks those cases through real subprocesses, validating J
 Native Windows and Linux race suites passed locally. The native Windows, Ubuntu and macOS race/test/build
 matrix, lint and vulnerability scan passed in [M3 CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978).
 M4 passes local Windows/Linux race, all canonical targets, bounded fuzzing, archive/privacy tests and
-all six static build targets. Native M4 GitHub CI is pending. Commands, terminal evidence, allocation
-measurements and limits are in [M4 validation](docs/testing/m4-validation.md);
+all six static build targets. Native Windows/Ubuntu/macOS M4 CI also passed. Commands, terminal evidence,
+allocation measurements and limits are in [M4 validation](docs/testing/m4-validation.md);
 [M3 validation](docs/testing/m3-validation.md) records the earlier socket and CI evidence.
 
 `make docs` regenerates all twelve rule pages from the same registry as findings, `explain` and `rules`.
@@ -300,16 +302,17 @@ M3 is **complete and merged** through [PR #3](https://github.com/Shellghostt/Env
 successful [main CI](https://github.com/Shellghostt/EnvDoctor/actions/runs/43802280915). Read the
 [M3 acceptance gates](docs/phases/M3.md), [accepted ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md)
 and [validation record](docs/testing/m3-validation.md) for its contracts and evidence.
-M4 ENV-024–ENV-026 are implemented and locally verified under the
+M4 ENV-024–ENV-026 are implemented and verified under the
 [M4 requirements](docs/phases/M4.md) and [accepted ADR 0006](docs/adr/0006-m4-reports-and-bundles.md).
-[Validation](docs/testing/m4-validation.md) records the remaining publication/native CI gate.
+[Validation](docs/testing/m4-validation.md) records local evidence and passing native GitHub CI;
+[PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review.
 
 | Milestone | Deliverable | Status |
 |---|---|---|
 | M1 | CLI foundation, collector interface, system information | **Done** (v0.1.0) |
 | M2 | Cross-platform collectors and rules ENV001–ENV006 | **Done (merged)** |
 | M3 | Rules ENV007–ENV012, Docker/dependency/proxy evidence, offline registry commands | **Done (merged)** |
-| M4 | Terminal viewer, Markdown, redacted bundles and offline diagnosis | Implemented; local gates pass, native GitHub CI pending |
+| M4 | Terminal viewer, Markdown, redacted bundles and offline diagnosis | Verified; [PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) open |
 | M5 | Safe, confirmed automated remediation | Not started |
 | M6 | Windows, Linux, macOS packaging and signed releases | Not started |
 

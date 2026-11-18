@@ -4,7 +4,7 @@ Initial audit: 2026-11-14; M3 verification refresh: 2026-11-15; M4 verification:
 These are development aids, not product features or substitutes for tests.
 Read [PLAN.md](PLAN.md), the [M4 requirements](phases/M4.md), implemented [M3 contract](phases/M3.md)
 and accepted [ADRs](adr/) first. M4 ADR 0006 is accepted; [M4 validation](testing/m4-validation.md)
-records implemented behavior and local evidence. Native M4 GitHub CI remains pending publication.
+records implemented behavior, local evidence and passing native Windows/Ubuntu/macOS M4 GitHub CI.
 
 ## CodeGraph
 
@@ -71,7 +71,8 @@ captures stay local beneath ignored `bin/`; the validation record includes repro
 Ten read-only Windows diagnoses on `c532dc3` took **236.06–561.36 ms**, all with nine collectors,
 twelve rules and diagnosis exit 1. Windows `GetProcessMemoryInfo` reported peak working sets of
 **13,213,696–14,782,464 bytes**, including successful final reads after exit. These local warm runs
-met the 3 s/100 MB targets; native macOS, cold-host and release measurements remain separate work.
+met the 3 s/100 MB targets; native macOS interactive/performance, cold-host and release measurements
+remain separate work.
 
 ## Memory Analyzer
 

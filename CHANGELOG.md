@@ -18,7 +18,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   capture/evaluator provenance and no collectors or network work.
 - Accepted [ADR 0006](docs/adr/0006-m4-reports-and-bundles.md), sharing schemas, archive/privacy/renderer/
   CLI tests, a real terminal capture and [M4 validation](docs/testing/m4-validation.md).
-  Local gates pass; native M4 Windows/Ubuntu/macOS GitHub CI remains pending publication.
+  Local gates and native M4 Windows/Ubuntu/macOS GitHub CI passed;
+  [PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review.
 - M3 rules ENV007–ENV012: known Docker API incompatibility, explicitly required dependency absence,
   package-manager/lockfile disagreements, effective Git identity/explicit autocrlf policy,
   canonical virtualenv/interpreter mismatch and opt-in proxy refusal/no-route evidence.

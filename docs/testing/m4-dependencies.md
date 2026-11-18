@@ -53,5 +53,5 @@ temporary xterm.js 6.0.0 preview. That QA dependency and the preview server live
 ignored `bin/`; neither is a runtime dependency, shipped feature or CI requirement.
 
 Native Windows tests/race and the bounded renderer lifecycle tests cover terminal
-integration. Native Ubuntu/macOS CI must still run after publication; compilation
-and model tests are recorded separately in [M4 validation](m4-validation.md).
+integration. Native Windows/Ubuntu/macOS GitHub CI passed tests, race and builds;
+compilation, model tests and executed CI are recorded separately in [M4 validation](m4-validation.md).
