@@ -10,7 +10,7 @@ Thanks for taking the time. This document is deliberately short and specific.
 3. [docs/adr/](docs/adr/) - decisions that have already been argued about. Do not relitigate them
    without a new ADR.
 4. [docs/phases/M4.md](docs/phases/M4.md) - planned reports/bundles, dependency order and acceptance gates;
-   preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADR 0005. ADR 0006 remains proposed.
+   preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADRs 0005/0006.
 5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
    and profiling appropriate to this repository's runtime.
 

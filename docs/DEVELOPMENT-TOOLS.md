@@ -3,7 +3,7 @@
 Initial audit: 2026-11-14; M3 verification refresh: 2026-11-15.
 These are development aids, not product features or substitutes for tests.
 Read [PLAN.md](PLAN.md), the [M4 requirements](phases/M4.md), implemented [M3 contract](phases/M3.md)
-and accepted [ADRs](adr/) first. M4 ADR 0006 remains proposed.
+and accepted [ADRs](adr/) first. M4 ADR 0006 is accepted; implementation evidence is still pending.
 
 ## CodeGraph
 

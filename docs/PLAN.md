@@ -12,7 +12,7 @@ depends_on:
   - No runtime dependencies (single static binary)
   - Docker (optional, only for testing rules that inspect Docker)
 created: 2026-11-13
-updated: 2026-11-17
+updated: 2026-11-19
 ---
 
 # EnvDoctor — Implementation Plan
@@ -31,9 +31,9 @@ merged at `6cf358138ecd3bedf086f22536a30562fb673e4e`; its
 was accepted and committed before implementation. The [M3 requirements](phases/M3.md) define the evidence
 and acceptance contract; [M3 validation](testing/m3-validation.md) records the final commands and limits.
 The [development-tool audit](DEVELOPMENT-TOOLS.md) records actual coverage and profiling limits.
-M4 is **Not started**. [M4 requirements](phases/M4.md) and
-[proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) prepare report formats, bundle export/redaction
-and offline diagnosis; they do not claim new commands or acceptance results.
+M4 is **in progress** on `feat/m4-implementation`, including the published preparation commit `2be420a`.
+[M4 requirements](phases/M4.md) and accepted [ADR 0006](adr/0006-m4-reports-and-bundles.md) define
+formats, allowlisted bundle export and offline diagnosis. No M4 acceptance result is claimed yet.
 
 ```yaml
 project: EnvDoctor
@@ -300,8 +300,8 @@ Implemented as of M3: `diagnose`, `version`, offline `explain` and `rules`/`rule
 `bundle` and `fix` remain planned; see section 0 for the authoritative list. Unknown rule IDs and invalid
 metadata arguments exit 4; output failures exit 3.
 
-M4 format/plain/bundle-input flags and bundle command semantics are proposed in
-[ADR 0006](adr/0006-m4-reports-and-bundles.md). They are not implemented. Bundle export must use a
+M4 format/plain/bundle-input flags and bundle command semantics are accepted in
+[ADR 0006](adr/0006-m4-reports-and-bundles.md). Implementation is in progress. Bundle export must use a
 separate sharing policy; ordinary JSON continues to include effective Git identity.
 
 | Exit code | Meaning |
@@ -520,8 +520,8 @@ tests and records local measurements without claiming M6 clean-host/release cove
 
 **Deliverable:** polished terminal output (Bubble Tea when TTY), Markdown export, `bundle` command.
 
-Status: **Not started; documentation prepared.** Follow [M4 requirements](phases/M4.md) and resolve
-[proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) before dependent code. Bundle input/export has
+Status: **In progress; ADR 0006 accepted before dependent code.** Follow [M4 requirements](phases/M4.md) and
+[accepted ADR 0006](adr/0006-m4-reports-and-bundles.md). Bundle input/export has
 its own version/redaction/omission policy; copying the current report is not sufficient.
 
 **Acceptance criteria**
@@ -705,7 +705,7 @@ metadata stays unknown. Optional proxy reachability requires explicit opt-in.
 1. Read sections 0, 3 and 9. Ten minutes.
 2. `make build && ./bin/envdoctor diagnose`; compare what it prints with section 0's `functional` field.
 3. Pick the next unchecked item in the current milestone. Rules come with fixtures or they do not come.
-   M4 requirements are in [phases/M4.md](phases/M4.md); ADR 0006 remains proposed. This preparation
-   authorizes documents only; implementation needs a later request and accepted export/CLI decisions.
+   M4 requirements are in [phases/M4.md](phases/M4.md); ADR 0006 is accepted. Implementation was requested
+   on 2026-11-19; preserve the accepted export/CLI decisions and verify each acceptance gate.
 4. Run `make test` — golden fixtures will tell you immediately if a rule change broke another platform.
 5. Never add a fix without the safety model. If in doubt, print the command instead of running it.

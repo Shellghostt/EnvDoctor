@@ -94,8 +94,8 @@ and Linux race suites passed locally; native Windows/Ubuntu/macOS tests and race
 
 ## M4 preparation
 
-[M4 requirements](phases/M4.md) and [proposed ADR 0006](adr/0006-m4-reports-and-bundles.md) prepare
+[M4 requirements](phases/M4.md) and [accepted ADR 0006](adr/0006-m4-reports-and-bundles.md) define
 Bubble Tea/plain/Markdown output and bounded versioned bundles. A separate export policy must remove
 identifying/free-text data and expose resulting evidence omissions. Offline bundle diagnosis evaluates
 captured facts under the current registry without inspecting the receiving machine. These paths are
-planned; existing plain/JSON/fixture contracts remain the implemented behavior.
+being implemented on `feat/m4-implementation`; existing plain/JSON/fixture contracts remain compatible.
