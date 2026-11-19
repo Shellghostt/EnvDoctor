@@ -6,16 +6,21 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
+	"github.com/shellghostt/envdoctor/internal/bundle"
 	"github.com/shellghostt/envdoctor/internal/collector"
 	"github.com/shellghostt/envdoctor/internal/diagnostic"
+	"github.com/shellghostt/envdoctor/internal/report"
 )
 
 // Process exit codes. PLAN section 8 is the contract.
@@ -29,16 +34,22 @@ const (
 
 // App is one invocation of the binary.
 type App struct {
-	Version    string
-	Stdout     io.Writer
-	Stderr     io.Writer
-	Getenv     func(string) string
-	Now        func() time.Time
-	Collectors []collector.Collector
-	HomeDir    func() (string, error)
-	Engine     *diagnostic.Engine
+	Version     string
+	Stdin       io.Reader
+	Stdout      io.Writer
+	Stderr      io.Writer
+	Getenv      func(string) string
+	LookupEnv   func(string) (string, bool)
+	Context     context.Context
+	Terminals   func() report.TerminalState
+	Interactive func(context.Context, io.Reader, io.Writer, report.Document) error
+	Now         func() time.Time
+	Collectors  []collector.Collector
+	HomeDir     func() (string, error)
+	Engine      *diagnostic.Engine
 
-	exitCode int
+	exitCode   int
+	bundleMode bool
 }
 
 // toolFailure marks an error as a failure of the tool itself rather than of the
@@ -52,15 +63,36 @@ func (e toolFailure) Unwrap() error { return e.err }
 // which keeps it usable from tests.
 func Main(args []string, app App) int {
 	app.applyDefaults()
+	for _, arg := range args[1:] {
+		if arg == "bundle" || arg == "--from-bundle" || strings.HasPrefix(arg, "--from-bundle=") {
+			app.bundleMode = true
+		}
+	}
 
 	root := app.newRoot()
 	root.SetArgs(args[1:])
 
-	if err := root.Execute(); err != nil {
-		home, _ := app.HomeDir()
-		_, _ = fmt.Fprintf(app.Stderr, "error: %s\n", collector.RedactText(err.Error(), home))
+	if err := root.ExecuteContext(app.Context); err != nil {
 		var failure toolFailure
-		if errors.As(err, &failure) {
+		failed := errors.As(err, &failure)
+		message := err.Error()
+		if app.bundleMode {
+			message = "invalid bundle command options"
+			if failed {
+				message = "diagnostic bundle operation failed"
+				for _, reason := range []error{bundle.ErrInvalid, bundle.ErrBounds, bundle.ErrVersion, bundle.ErrIntegrity, bundle.ErrEvidence, bundle.ErrRead, bundle.ErrWrite, context.Canceled, context.DeadlineExceeded} {
+					if errors.Is(err, reason) {
+						message = reason.Error()
+						break
+					}
+				}
+			}
+		} else {
+			home, _ := app.HomeDir()
+			message = collector.RedactText(message, home)
+		}
+		_, _ = fmt.Fprintf(app.Stderr, "error: %s\n", report.VisibleText(message))
+		if failed {
 			return ExitToolFailure
 		}
 		_, _ = fmt.Fprintln(app.Stderr, "Run 'envdoctor --help' for usage.")
@@ -70,6 +102,9 @@ func Main(args []string, app App) int {
 }
 
 func (a *App) applyDefaults() {
+	if a.Context == nil {
+		a.Context = context.Background()
+	}
 	if a.Stdout == nil {
 		a.Stdout = io.Discard
 	}
@@ -78,6 +113,12 @@ func (a *App) applyDefaults() {
 	}
 	if a.Getenv == nil {
 		a.Getenv = os.Getenv
+	}
+	if a.LookupEnv == nil {
+		a.LookupEnv = os.LookupEnv
+	}
+	if a.Interactive == nil {
+		a.Interactive = report.WriteInteractive
 	}
 	if a.Now == nil {
 		a.Now = time.Now
@@ -121,12 +162,27 @@ func (a *App) newRoot() *cobra.Command {
 	}
 	root.SetOut(a.Stdout)
 	root.SetErr(a.Stderr)
+	root.SetIn(a.Stdin)
 
 	root.AddCommand(a.newDiagnoseCommand())
+	root.AddCommand(a.newBundleCommand())
 	root.AddCommand(a.newVersionCommand())
 	root.AddCommand(a.newExplainCommand())
 	root.AddCommand(a.newRulesCommand())
 	return root
+}
+
+func terminalStream(stream any) bool {
+	file, ok := stream.(interface{ Fd() uintptr })
+	return ok && term.IsTerminal(int(file.Fd()))
+}
+
+func (a *App) terminalState() report.TerminalState {
+	if a.Terminals != nil {
+		return a.Terminals()
+	}
+	_, noColor := a.LookupEnv("NO_COLOR")
+	return report.TerminalState{Input: terminalStream(a.Stdin), Output: terminalStream(a.Stdout), Error: terminalStream(a.Stderr), Term: a.Getenv("TERM"), NoColor: noColor}
 }
 
 func (a *App) newVersionCommand() *cobra.Command {

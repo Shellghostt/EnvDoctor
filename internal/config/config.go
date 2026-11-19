@@ -35,6 +35,7 @@ type Options struct {
 	Rule           string
 	Ports          []int
 	FixtureDir     string
+	FromBundle     string
 	ProbeNetwork   bool
 	PackageManager string
 }
@@ -43,6 +44,9 @@ type Options struct {
 // check whether the rule exists: that needs the rule registry, which the
 // caller owns.
 func (o Options) Validate() error {
+	if o.FromBundle != "" && (o.FixtureDir != "" || len(o.Ports) > 0 || o.ProbeNetwork || o.PackageManager != "") {
+		return fmt.Errorf("--from-bundle conflicts with live capture flags and --fixture-dir")
+	}
 	if o.ProbeNetwork && o.FixtureDir != "" {
 		return fmt.Errorf("--probe-network cannot be used with --fixture-dir")
 	}

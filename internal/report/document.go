@@ -21,6 +21,22 @@ type Document struct {
 	ExitCode      int                  `json:"exitCode"`
 	Rules         int                  `json:"rules"`
 	Collectors    []Collector          `json:"collectors"`
+	Source        *Source              `json:"source,omitempty"`
+}
+
+// Source is present only for bundle evidence, never for ordinary M3 output.
+type Source struct {
+	Kind            string     `json:"kind"`
+	CaptureTool     Tool       `json:"captureTool"`
+	CapturedAt      time.Time  `json:"capturedAt"`
+	RedactionPolicy string     `json:"redactionPolicy"`
+	CaptureExitCode int        `json:"captureExitCode"`
+	Omissions       []Omission `json:"omissions"`
+}
+
+type Omission struct {
+	Field  string `json:"field"`
+	Reason string `json:"reason"`
 }
 
 // Tool identifies the binary that produced the document.

@@ -1,0 +1,54 @@
+# EnvDoctor diagnosis
+
+- Tool: envdoctor 0&#46;1&#46;0
+- Evaluated: 2026&#45;11&#45;13T10&#58;00&#58;00Z
+- Captured: 2026&#45;11&#45;13T10&#58;00&#58;00Z
+- Platform: windows amd64
+- Exit code: 3
+- Findings: 4 (critical 1, error 1, warning 1, info 1)
+
+## Captured evidence
+
+- Source: bundle
+- Capture tool: envdoctor 0&#46;1&#46;0
+- Redaction policy: allowlist&#45;v1
+- Original diagnosis exit: 2
+
+Paths and hosts are opaque capture-local aliases. Removed values remain unavailable.
+
+- Omitted: git&#46;identity &#40;identifying&#95;values&#41;
+
+## Degraded collectors
+
+- git&#58; captured collector unavailable
+
+## Skipped builtin rules
+
+- ENV010&#58; unavailable git evidence
+
+## Findings
+
+### CRITICAL &#8212; ENV900 &#8212; Critical evidence
+
+- Detected: &#60;script&#62;bad&#60;&#47;script&#62;&#124;&#91;x&#93;&#40;https&#58;&#47;&#47;invalid&#46;example&#41;
+- Detected: C&#58;&#92;synthetic&#92;project with spaces&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;long&#45;directory&#45;name&#45;0123456789&#92;&#60;end&#62;&#124;file&#46;txt
+- Possible cause: Unknown cause
+- Manual suggestion: Check manually
+- Manual command (not executed): echo &#96;test&#96;
+- Verification (not executed): echo &#34;ok&#34;
+- Limitation: Rule metadata unavailable in this build.
+
+### ERROR &#8212; ENV901 &#8212; Error evidence
+
+- Detected: error
+- Limitation: Rule metadata unavailable in this build.
+
+### WARNING &#8212; ENV902 &#8212; Warning evidence
+
+- Detected: warning
+- Limitation: Rule metadata unavailable in this build.
+
+### INFO &#8212; ENV903 &#8212; Info evidence
+
+- Detected: info
+- Limitation: Rule metadata unavailable in this build.

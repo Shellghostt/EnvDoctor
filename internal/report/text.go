@@ -16,6 +16,16 @@ func WriteText(w io.Writer, document Document) error {
 
 	fmt.Fprintf(&b, "EnvDoctor %s - environment diagnosis\n", document.Tool.Version)
 	fmt.Fprintf(&b, "Generated %s\n\n", document.GeneratedAt.Format("2006-01-02T15:04:05Z07:00"))
+	if document.Source != nil {
+		s := document.Source
+		fmt.Fprintf(&b, "Source     captured bundle evidence; %s %s\n", s.CaptureTool.Name, s.CaptureTool.Version)
+		fmt.Fprintf(&b, "Captured   %s; policy %s; original exit %d\n", s.CapturedAt.Format("2006-01-02T15:04:05Z07:00"), s.RedactionPolicy, s.CaptureExitCode)
+		b.WriteString("Paths/hosts are opaque capture-local aliases, not locations to inspect.\n")
+		for _, omission := range s.Omissions {
+			fmt.Fprintf(&b, "Omitted    %s (%s)\n", omission.Field, omission.Reason)
+		}
+		b.WriteString("\n")
+	}
 
 	writePlatform(&b, document.Snapshot)
 	writePath(&b, document.Snapshot.Path)
@@ -24,7 +34,7 @@ func WriteText(w io.Writer, document Document) error {
 	writeDegraded(&b, document)
 	writeFindings(&b, document.Findings)
 
-	if _, err := io.WriteString(w, b.String()); err != nil {
+	if err := writeString(w, VisibleText(b.String())); err != nil {
 		return fmt.Errorf("write text report: %w", err)
 	}
 	return nil

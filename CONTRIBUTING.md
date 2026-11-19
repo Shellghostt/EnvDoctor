@@ -9,8 +9,8 @@ Thanks for taking the time. This document is deliberately short and specific.
 2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - how the pieces fit together.
 3. [docs/adr/](docs/adr/) - decisions that have already been argued about. Do not relitigate them
    without a new ADR.
-4. [docs/phases/M3.md](docs/phases/M3.md) and [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md) -
-   implemented M3 evidence contracts and verified three-OS CI gate.
+4. [docs/phases/M4.md](docs/phases/M4.md) - report/bundle contracts, dependency order and acceptance gates;
+   preserve [M3 evidence contracts](docs/phases/M3.md) and accepted ADRs 0005/0006.
 5. [docs/DEVELOPMENT-TOOLS.md](docs/DEVELOPMENT-TOOLS.md) - CodeGraph freshness, static-analysis coverage
    and profiling appropriate to this repository's runtime.
 
@@ -36,6 +36,8 @@ the CLI and runs all 172 golden cases through it, including the unchanged 54 M2 
 Each new rule needs positive, negative and edge snapshots for Windows, Linux and macOS. Expected
 findings are reviewed evidence, not output regenerated from the implementation. See
 [M3 validation](docs/testing/m3-validation.md) for native Windows and Linux race commands and limits.
+[M4 validation](docs/testing/m4-validation.md) records terminal, sharing, archive, offline and resource
+cases. M4 local gates and native Windows/Ubuntu/macOS GitHub CI pass.
 Windows race tests need a 64-bit MinGW-w64-compatible GCC configured in Go's CC/CXX; ordinary static
 builds use `make build`, which disables CGO only for that target.
 

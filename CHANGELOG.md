@@ -9,6 +9,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- M4 ENV-024–ENV-026: scrolling Bubble Tea reports with plain fallback, explicit
+  `--format text|markdown|json`, `--plain` and escaped, bounded Markdown export.
+- Version-1 diagnostic bundles with typed allowlisted sharing evidence, opaque path/host aliases,
+  Git identity presence facts, explicit omissions, strict archive/JSON bounds and atomic publication.
+  `--include-logs` contains only structured collector statuses/timings.
+- Offline `diagnose --from-bundle`, recomputing current builtin findings from validated evidence with
+  capture/evaluator provenance and no collectors or network work.
+- Accepted [ADR 0006](docs/adr/0006-m4-reports-and-bundles.md), sharing schemas, archive/privacy/renderer/
+  CLI tests, a real terminal capture and [M4 validation](docs/testing/m4-validation.md).
+  Local gates and native M4 Windows/Ubuntu/macOS GitHub CI passed;
+  [PR #4](https://github.com/Shellghostt/EnvDoctor/pull/4) is open for review.
 - M3 rules ENV007–ENV012: known Docker API incompatibility, explicitly required dependency absence,
   package-manager/lockfile disagreements, effective Git identity/explicit autocrlf policy,
   canonical virtualenv/interpreter mismatch and opt-in proxy refusal/no-route evidence.
@@ -21,7 +32,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   CLI, cancellation and socket lifecycle regressions.
 - Accepted [ADR 0005](docs/adr/0005-m3-evidence-and-rule-registry.md),
   [M3 acceptance requirements](docs/phases/M3.md), [validation evidence](docs/testing/m3-validation.md)
-  and [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is complete on the feature branch;
+  and [development-tool audit](docs/DEVELOPMENT-TOOLS.md). M3 is complete and merged through PR #3;
   [CI 43723839978](https://github.com/Shellghostt/EnvDoctor/actions/runs/43723839978) passed native
   Windows/Ubuntu/macOS race, tests and builds, plus lint and the vulnerability scan.
 
@@ -35,6 +46,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Optional bundle-source metadata extends report schema v1 and stays absent from ordinary reports.
+- Terminal dependencies are pinned/audited, including Bubble Tea v1.3.10, x/term v0.48.0,
+  x/sys v0.50.0 and x/text v0.44.0; see [M4 dependency review](docs/testing/m4-dependencies.md).
 - Optional M3 snapshot evidence extends schema v1 compatibly; project and rule-registry JSON have
   separate version-1 schemas. Explicit typed partial collector evidence retains degraded notices
   and disables dependent rules.
@@ -72,7 +86,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned
 
-- M4 reports and bundles; later rules ENV013–ENV018, confirmed fixes and signed releases.
+- Rules ENV013–ENV018, confirmed fixes and signed releases.
 
 ## [0.1.0] - 2026-11-13
 

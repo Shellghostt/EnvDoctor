@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/shellghostt/envdoctor/schema/diagnose-v1.schema.json",
   "title": "EnvDoctor diagnose output v1",
-  "description": "The single JSON document written by `envdoctor diagnose --json`.",
+  "description": "The single JSON diagnosis document. Optional bundle source metadata is absent from ordinary live/fixture runs; existing v1 fields and values remain unchanged.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,6 +17,7 @@
     "collectors"
   ],
   "properties": {
+    "source": {"$ref":"#/$defs/source"},
     "schemaVersion": { "const": 1 },
     "generatedAt": { "type": "string", "format": "date-time" },
     "tool": {
@@ -66,6 +67,114 @@
     }
   },
   "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "captureTool",
+        "capturedAt",
+        "redactionPolicy",
+        "captureExitCode",
+        "omissions"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bundle"
+        },
+        "captureTool": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "const": "envdoctor"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^(?:dev|[0-9]{1,9}(?:\\.[0-9]{1,9}){0,3})$",
+              "maxLength": 39
+            }
+          }
+        },
+        "capturedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$",
+          "maxLength": 40
+        },
+        "redactionPolicy": {
+          "const": "allowlist-v1"
+        },
+        "captureExitCode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "omissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "field",
+              "reason"
+            ],
+            "properties": {
+              "field": {
+                "type": "string",
+                "enum": [
+                  "platform",
+                  "platform.version",
+                  "shell.name",
+                  "shell.path",
+                  "path.locations",
+                  "runtimes.paths",
+                  "runtimes.version",
+                  "runtimes.name",
+                  "runtimes.manager",
+                  "runtimes.resolution",
+                  "runtimes.environment",
+                  "network.ownership",
+                  "docker.context",
+                  "docker.endpoint",
+                  "docker.version",
+                  "docker.api",
+                  "git.identity",
+                  "git.origins",
+                  "git.version",
+                  "git.autocrlf",
+                  "dependencies.locations",
+                  "dependencies.requirement",
+                  "dependencies.packageManager",
+                  "dependencies.lockfile",
+                  "dependencies.gitAutocrlf",
+                  "pythonEnvironment.locations",
+                  "proxy.endpoint",
+                  "proxy.url",
+                  "collector.errors",
+                  "tool.version"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "identifying_values",
+                  "raw_error",
+                  "unsupported_value",
+                  "unavailable_evidence"
+                ]
+              }
+            }
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        }
+      }
+    },
     "finding": {
       "type": "object",
       "additionalProperties": false,

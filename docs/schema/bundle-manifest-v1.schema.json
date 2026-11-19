@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shellghostt/envdoctor/schema/bundle-manifest-v1.schema.json",
+  "title": "EnvDoctor ZIP manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundleVersion",
+    "snapshotVersion",
+    "reportVersion",
+    "redactionPolicy",
+    "tool",
+    "capturedAt",
+    "captureExitCode",
+    "omissions",
+    "members"
+  ],
+  "properties": {
+    "bundleVersion": {
+      "const": 1
+    },
+    "snapshotVersion": {
+      "const": 1
+    },
+    "reportVersion": {
+      "const": 1
+    },
+    "redactionPolicy": {
+      "const": "allowlist-v1"
+    },
+    "tool": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/tool"
+    },
+    "capturedAt": {
+      "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/utc"
+    },
+    "captureExitCode": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "omissions": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/shellghostt/envdoctor/schema/bundle-common-v1.schema.json#/$defs/omission"
+      },
+      "maxItems": 256,
+      "uniqueItems": true
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "size",
+          "sha256"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "snapshot.json",
+              "report.json",
+              "report.md",
+              "versions.json",
+              "diagnostics.json"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3145728
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "maxItems": 7
+    }
+  }
+}

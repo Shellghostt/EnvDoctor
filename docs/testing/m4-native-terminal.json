@@ -1,0 +1,89 @@
+{
+  "recordedDateLocal": "2026-11-19",
+  "timezone": "Asia/Calcutta",
+  "platform": "windows/amd64",
+  "probe": "tests/terminal/main_windows.go",
+  "fixture": "docs/testing/fixtures/m4-viewer",
+  "cases": [
+    {
+      "name": "quit",
+      "exitCode": 2,
+      "before": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "after": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "stateRestored": true,
+      "frameFailureInjected": false,
+      "status": "native console"
+    },
+    {
+      "name": "interrupt",
+      "exitCode": 3,
+      "before": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "after": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "stateRestored": true,
+      "frameFailureInjected": false,
+      "status": "native console"
+    },
+    {
+      "name": "output-failure",
+      "exitCode": 3,
+      "before": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "after": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "stateRestored": true,
+      "frameFailureInjected": true,
+      "status": "native console"
+    },
+    {
+      "name": "resize-and-quit",
+      "exitCode": 2,
+      "before": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "after": {
+        "inputMode": 503,
+        "outputMode": 7,
+        "cursorVisible": true
+      },
+      "stateRestored": true,
+      "frameFailureInjected": false,
+      "status": "native console",
+      "resizeAttempts": [
+        {
+          "width": 40,
+          "height": 18,
+          "applied": true
+        },
+        {
+          "width": 96,
+          "height": 28,
+          "applied": true
+        }
+      ]
+    }
+  ]
+}
